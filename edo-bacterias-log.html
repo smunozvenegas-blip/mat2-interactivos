@@ -100,6 +100,7 @@ const CONFIG = {
   legend: [{ c: "--curve", t: "solución logística" }, { c: "--ghost", dash: 1, t: "exponencial, sin límite" }, { c: "--const", dash: 1, t: "soluciones constantes P = 0 y P = K" }, { c: "--point", t: "P(0) = 30" }],
   notes: [
     "Unidades: P en millones (150 mil millones = 150.000 millones), t en minutos.",
+    "Pista: 1/(P·(1 − P/K)) = 1/P − 1/(P − K), que se verifica sumando las fracciones de la derecha.",
     "Solución general: P(t) = K / (1 + A·e^(−αt)) con A = (K − P(0))/P(0) = 4.999.",
     "Tomando «duplica en 20 minutos» como P(20) = 60 sale α = ln(4.999/2.499)/20 ≈ 0,03467, casi igual a ln(2)/20 porque 30 millones es muy poco frente a K.",
     "A las 3 horas la diferencia con la exponencial ya se nota; después la logística se frena y tiende a K.",

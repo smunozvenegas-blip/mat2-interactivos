@@ -108,7 +108,7 @@ const CONFIG = {
   legend: [{ c: "--curve", t: "solución elegida" }, { c: "--curve-soft", t: "otras condiciones iniciales" }, { c: "--const", dash: 1, t: "soluciones constantes P = 0 y P = K" }, { c: "--point", t: "P(0) o condición inicial (clic)" }],
   notes: [
     "Ejemplo de la clase: dP/dt = 0,02·P·(1 − P/12), P(0) = 1,5, en miles y años. Solución: P(t) = 12·e^(0,02t) / (e^(0,02t) + 7) = 12 / (1 + 7·e^(−0,02t)).",
-    "Fracciones parciales: 1/(P·(1 − P/12)) = 1/P − 1/(P − 12).",
+    "Para separar se usa 1/(P·(1 − P/12)) = 1/P − 1/(P − 12), que se verifica sumando las fracciones de la derecha.",
     "P = 0 y P = K son soluciones constantes y ninguna otra las cruza; todas las positivas tienden a K.",
     "Mueve r, K y P(0), o haz clic en el plano para fijar otra condición inicial.",
   ],
