@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+<title>Bacterias con capacidad de carga</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: una columna; el plano manda, controles y lectura de la solución debajo */
+:root {
+  --bg: #f7f8fa; --panel: #ffffff; --fg: #1c2230; --muted: #5d6676;
+  --grid: #dfe3ea; --axis: #8a93a3; --field: #a9b2c2;
+  --curve: #1f5fbf; --curve-soft: rgba(31, 95, 191, 0.3);
+  --const: #c2410c; --ghost: #8b5cf6; --point: #0f766e; --line: #d5dae3;
+  --f-display: "Literata", Georgia, serif;
+  --f-body: "IBM Plex Sans", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12151c; --panel: #1a1f29; --fg: #e6e9ef; --muted: #9aa3b2;
+    --grid: #262c38; --axis: #5b6475; --field: #4a5366;
+    --curve: #7fb0ff; --curve-soft: rgba(127, 176, 255, 0.3);
+    --const: #fb923c; --ghost: #c4b5fd; --point: #5eead4; --line: #2c3341;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12151c; --panel: #1a1f29; --fg: #e6e9ef; --muted: #9aa3b2;
+  --grid: #262c38; --axis: #5b6475; --field: #4a5366;
+  --curve: #7fb0ff; --curve-soft: rgba(127, 176, 255, 0.3);
+  --const: #fb923c; --ghost: #c4b5fd; --point: #5eead4; --line: #2c3341;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 32px;
+}
+.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 16px; }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: 1.6rem; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); margin: 4px 0 0; max-width: 70ch; }
+.m { font-family: var(--f-mono); font-size: 0.95em; }
+.plot { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+canvas { display: block; width: 100%; height: auto; touch-action: manipulation; }
+#controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+.ctl { display: grid; gap: 6px; min-width: 0; align-content: start; }
+.lbl { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+input[type="range"] { width: 100%; accent-color: var(--curve); }
+label.chk { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.btn {
+  justify-self: start; font: inherit; font-weight: 500; padding: 6px 14px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--curve); background: var(--panel); color: var(--curve);
+}
+.btn:focus-visible, input:focus-visible { outline: 2px solid var(--curve); outline-offset: 2px; }
+.readout { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 6px; min-width: 0; }
+.formula { font-family: var(--f-mono); font-size: 1.05rem; overflow-x: auto; white-space: nowrap; }
+#legend { display: flex; flex-wrap: wrap; gap: 16px; color: var(--muted); font-size: 0.88rem; }
+.sw { display: inline-block; width: 22px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: 6px; }
+#notes { color: var(--muted); max-width: 72ch; margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.tab { font-variant-numeric: tabular-nums; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Bacterias: crecimiento logístico</h1>
+    <p class="sub">Duplica su población en 20 minutos cuando hay 30 millones, pero el entorno no soporta más de 150 mil millones. Ejercicio: la solución queda oculta hasta que la muestres.</p>
+  </header>
+  <div class="plot"><canvas id="cv" aria-label="Plano con campo de pendientes y soluciones de la EDO"></canvas></div>
+  <div id="legend"></div>
+  <div id="controls"></div>
+  <div class="readout" aria-live="polite"><div class="formula" id="formula"></div><div class="tab" id="detail"></div></div>
+  <ul id="notes"></ul>
+</div>
+
+<script>
+const K = 150000, P0 = 30;
+const a = Math.log((K / P0 - 1) / (K / (2 * P0) - 1)) / 20;   // P(20) = 60 exacto
+const A = (K - P0) / P0;
+const CONFIG = {
+  X: [0, 400], Y: [0, 160000], logY: [10, 1000000], xlabel: "t (minutos)", ylabel: "P (millones)",
+  params: [],
+  cursor: { label: "t (min)", min: 0, max: 400, step: 1, value: 180, d: 0 },
+  reveal: "Mostrar solución",
+  f: (t, P) => a * P * (1 - P / K),
+  sol: t => K / (1 + A * Math.exp(-a * t)),
+  ghost: t => P0 * 2 ** (t / 20),
+  start: () => [0, P0],
+  consts: () => [{ y: K, label: "K = 150.000 millones" }, { y: 0, label: "P = 0" }],
+  formula: (p, r) => r ? "P(t) = 150.000 / (1 + 4.999·e^(−" + nf(a, 5) + "·t))"
+                       : "dP/dt = α·P·(1 − P/150.000),  P(0) = 30,  P(20) = 60",
+  detail(p, t, pt, r) {
+    const E = P0 * 2 ** (t / 20);
+    if (!r) return "La curva punteada es el crecimiento sin límite (ejemplo anterior): 30·2^(t/20). ¿Cómo cambia con la capacidad de carga?";
+    const L = K / (1 + A * Math.exp(-a * t));
+    return "α = ln(4.999/2.499)/20 ≈ " + nf(a, 5) + ". P(" + nf(t, 0) + ") ≈ " + nf(L, 0) + " millones; sin límite serían " + nf(E, 0) + " millones.";
+  },
+  legend: [{ c: "--curve", t: "solución logística" }, { c: "--ghost", dash: 1, t: "exponencial, sin límite" }, { c: "--const", dash: 1, t: "soluciones constantes P = 0 y P = K" }, { c: "--point", t: "P(0) = 30" }],
+  notes: [
+    "Unidades: P en millones (150 mil millones = 150.000 millones), t en minutos.",
+    "Solución general: P(t) = K / (1 + A·e^(−αt)) con A = (K − P(0))/P(0) = 4.999.",
+    "Tomando «duplica en 20 minutos» como P(20) = 60 sale α = ln(4.999/2.499)/20 ≈ 0,03467, casi igual a ln(2)/20 porque 30 millones es muy poco frente a K.",
+    "A las 3 horas la diferencia con la exponencial ya se nota; después la logística se frena y tiende a K.",
+  ],
+};
+
+</script>
+<script>
+(function () {
+  const cfg = CONFIG;
+  const cv = document.getElementById("cv");
+  const ctx = cv.getContext("2d");
+  const $ = id => document.getElementById(id);
+  const p = {};
+  cfg.params.forEach(q => p[q.id] = q.value);
+  cfg.derive && cfg.derive(p);
+  let cur = cfg.cursor ? cfg.cursor.value : null;
+  let pt = null;
+  let revealed = !cfg.reveal;
+  let ylog = false;
+  const M = { l: 58, r: 14, t: 14, b: 36 };
+  let W = 0, H = 0;
+  const [X0, X1] = cfg.X;
+
+  const nf = (v, d) => Number(v).toLocaleString("es-CL", { minimumFractionDigits: d, maximumFractionDigits: d });
+  window.nf = nf;
+  const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const Yr = () => (ylog ? cfg.logY : cfg.Y).map(v => (ylog ? Math.log10(v) : v));
+  const px = x => M.l + (x - X0) / (X1 - X0) * (W - M.l - M.r);
+  const ix = s => X0 + (s - M.l) / (W - M.l - M.r) * (X1 - X0);
+  const py = y => { const [a, b] = Yr(); const v = ylog ? Math.log10(y) : y; return H - M.b - (v - a) / (b - a) * (H - M.t - M.b); };
+  const iy = s => { const [a, b] = Yr(); const v = a + (H - M.b - s) / (H - M.t - M.b) * (b - a); return ylog ? 10 ** v : v; };
+
+  // controles
+  const box = $("controls");
+  cfg.params.filter(q => !q.hidden).forEach(q => {
+    const d = document.createElement("div"); d.className = "ctl";
+    d.innerHTML = `<label class="lbl" for="p-${q.id}">${q.label} = <span class="m tab" id="v-${q.id}"></span></label>
+      <input id="p-${q.id}" type="range" min="${q.min}" max="${q.max}" step="${q.step}" value="${q.value}">`;
+    box.appendChild(d);
+    d.querySelector("input").addEventListener("input", e => { p[q.id] = parseFloat(e.target.value); cfg.derive && cfg.derive(p); pt = null; sync(); });
+  });
+  if (cfg.cursor) {
+    const q = cfg.cursor, d = document.createElement("div"); d.className = "ctl";
+    d.innerHTML = `<label class="lbl" for="cur">${q.label} = <span class="m tab" id="v-cur"></span></label>
+      <input id="cur" type="range" min="${q.min}" max="${q.max}" step="${q.step}" value="${q.value}">`;
+    box.appendChild(d);
+    d.querySelector("input").addEventListener("input", e => { cur = parseFloat(e.target.value); sync(); });
+  }
+  const opts = document.createElement("div"); opts.className = "ctl";
+  let oh = `<span class="lbl">Mostrar</span><label class="chk"><input id="field" type="checkbox" checked> campo de pendientes</label>`;
+  if (cfg.family) oh += `<label class="chk"><input id="family" type="checkbox"> familia de soluciones</label>`;
+  if (cfg.logY) oh += `<label class="chk"><input id="log" type="checkbox"> escala logarítmica en el eje vertical</label>`;
+  if (cfg.reveal) oh += `<button class="btn" type="button" id="reveal">${cfg.reveal}</button>`;
+  opts.innerHTML = oh; box.appendChild(opts);
+  $("field").addEventListener("change", draw);
+  cfg.family && $("family").addEventListener("change", draw);
+  cfg.logY && $("log").addEventListener("change", e => { ylog = e.target.checked; draw(); });
+  cfg.reveal && $("reveal").addEventListener("click", () => {
+    revealed = !revealed; $("reveal").textContent = revealed ? "Ocultar solución" : cfg.reveal; sync();
+  });
+
+  $("legend").innerHTML = cfg.legend.map(l =>
+    `<span><span class="sw" style="border-color: var(${l.c}); border-top-style: ${l.dash ? "dashed" : "solid"}"></span>${l.t}</span>`).join("");
+  $("notes").innerHTML = cfg.notes.map(n => `<li>${n}</li>`).join("");
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    W = cv.clientWidth;
+    H = Math.max(300, Math.round(Math.min(W * 0.66, window.innerHeight * 0.66, 600)));
+    cv.style.height = H + "px";
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+
+  function niceTicks(a, b, n) {
+    const raw = (b - a) / n, mag = 10 ** Math.floor(Math.log10(raw)), r = raw / mag;
+    const step = (r < 1.5 ? 1 : r < 3 ? 2 : r < 7 ? 5 : 10) * mag;
+    const out = []; for (let v = Math.ceil(a / step) * step; v <= b + step * 1e-9; v += step) out.push(+v.toFixed(10));
+    return { out, d: Math.max(0, -Math.floor(Math.log10(step) + 1e-9)) };
+  }
+
+  function curve(fn, color, width, dash) {
+    ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash ? [7, 5] : []);
+    ctx.beginPath(); let on = false;
+    for (let s = M.l; s <= W - M.r; s += 1) {
+      const y = fn(ix(s));
+      const ok = Number.isFinite(y) && (!ylog || y > 0);
+      const yy = ok ? py(y) : NaN;
+      if (!ok || Math.abs(yy) > 1e5) { on = false; continue; }
+      on ? ctx.lineTo(s, yy) : ctx.moveTo(s, yy); on = true;
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  function draw() {
+    if (!W) return;
+    const font = tok("--f-mono") || "monospace";
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = tok("--panel"); ctx.fillRect(0, 0, W, H);
+    const nx = W < 500 ? 4 : 7;
+    const tx = niceTicks(X0, X1, nx);
+    let ty;
+    if (ylog) { const [a, b] = Yr(); ty = { out: [], d: 0 }; for (let e = Math.ceil(a); e <= b; e++) ty.out.push(10 ** e); }
+    else ty = niceTicks(cfg.Y[0], cfg.Y[1], 6);
+
+    ctx.strokeStyle = tok("--grid"); ctx.lineWidth = 1; ctx.beginPath();
+    tx.out.forEach(x => { ctx.moveTo(Math.round(px(x)) + .5, M.t); ctx.lineTo(Math.round(px(x)) + .5, H - M.b); });
+    ty.out.forEach(y => { ctx.moveTo(M.l, Math.round(py(y)) + .5); ctx.lineTo(W - M.r, Math.round(py(y)) + .5); });
+    ctx.stroke();
+
+    ctx.strokeStyle = tok("--axis"); ctx.lineWidth = 1.2; ctx.beginPath();
+    const ax = X0 <= 0 && X1 >= 0 ? px(0) : M.l;
+    const ay = !ylog && cfg.Y[0] <= 0 && cfg.Y[1] >= 0 ? py(0) : H - M.b;
+    ctx.moveTo(ax, M.t); ctx.lineTo(ax, H - M.b); ctx.moveTo(M.l, ay); ctx.lineTo(W - M.r, ay); ctx.stroke();
+
+    ctx.fillStyle = tok("--muted"); ctx.font = "12px " + font;
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    tx.out.forEach(x => ctx.fillText(nf(x, tx.d), px(x), H - M.b + 6));
+    ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    ty.out.forEach(y => ctx.fillText(nf(y, ty.d), M.l - 6, py(y)));
+    ctx.textAlign = "right"; ctx.textBaseline = "bottom"; ctx.fillText(cfg.xlabel, W - M.r, H - M.b - 4);
+    ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.fillText(cfg.ylabel, M.l + 6, M.t + 2);
+
+    ctx.save(); ctx.beginPath(); ctx.rect(M.l, M.t, W - M.l - M.r, H - M.t - M.b); ctx.clip();
+
+    if ($("field").checked) {
+      ctx.strokeStyle = tok("--field"); ctx.lineWidth = 1.2; ctx.beginPath();
+      const step = W < 500 ? 26 : 32, L = step * 0.32, h = (X1 - X0) * 1e-5;
+      for (let a = M.l + step / 2; a < W - M.r; a += step) for (let b = M.t + step / 2; b < H - M.b; b += step) {
+        const x = ix(a), y = iy(b), m = cfg.f(x, y, p);
+        let dx = px(x + h) - px(x), dy = py(y + m * h) - py(y);
+        if (!Number.isFinite(dy)) continue;
+        const n = Math.hypot(dx, dy); if (!n) continue;
+        dx = dx / n * L; dy = dy / n * L;
+        ctx.moveTo(a - dx, b - dy); ctx.lineTo(a + dx, b + dy);
+      }
+      ctx.stroke();
+    }
+
+    const consts = cfg.consts ? cfg.consts(p) : [];
+    ctx.font = "12px " + font;
+    consts.forEach(c => {
+      if (ylog && c.y <= 0) return;
+      ctx.setLineDash([7, 5]); ctx.strokeStyle = tok("--const"); ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.moveTo(M.l, py(c.y)); ctx.lineTo(W - M.r, py(c.y)); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = tok("--const"); ctx.textAlign = "right"; ctx.textBaseline = "bottom";
+      ctx.fillText(c.label, W - M.r - 6, py(c.y) - 3);
+    });
+
+    if (cfg.family && $("family").checked) cfg.family(p).forEach(q => curve(x => cfg.sol(x, q), tok("--curve-soft"), 1.2));
+    if (cfg.ghost) curve(x => cfg.ghost(x, p), tok("--ghost"), 2, true);
+    if (revealed) curve(x => cfg.sol(x, p), tok("--curve"), 3);
+
+    if (cfg.start) { const [sx, sy] = cfg.start(p); dot(sx, sy, tok("--point")); }
+    if (pt) dot(pt[0], pt[1], tok("--point"));
+    if (revealed && cur !== null) {
+      const y = cfg.sol(cur, p);
+      if (Number.isFinite(y) && (!ylog || y > 0)) {
+        ctx.strokeStyle = tok("--curve"); ctx.lineWidth = 1; ctx.setLineDash([3, 4]); ctx.beginPath();
+        ctx.moveTo(px(cur), H - M.b); ctx.lineTo(px(cur), py(y)); ctx.lineTo(M.l, py(y)); ctx.stroke(); ctx.setLineDash([]);
+        dot(cur, y, tok("--curve"));
+      }
+    }
+    ctx.restore();
+  }
+  function dot(x, y, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(px(x), py(y), 5.5, 0, 2 * Math.PI); ctx.fill(); }
+
+  function sync() {
+    cfg.params.filter(q => !q.hidden).forEach(q => {
+      $("v-" + q.id).textContent = nf(p[q.id], q.d);
+      $("p-" + q.id).value = Math.max(q.min, Math.min(q.max, p[q.id]));
+    });
+    if (cfg.cursor) $("v-cur").textContent = nf(cur, cfg.cursor.d);
+    $("formula").textContent = cfg.formula(p, revealed);
+    $("detail").textContent = cfg.detail(p, cur, pt, revealed);
+    draw();
+  }
+
+  if (cfg.fromPoint) {
+    cv.style.cursor = "crosshair";
+    cv.addEventListener("click", e => {
+      const r = cv.getBoundingClientRect(), s = e.clientX - r.left, t = e.clientY - r.top;
+      if (s < M.l || s > W - M.r || t < M.t || t > H - M.b) return;
+      const x0 = ix(s), y0 = iy(t);
+      if (cfg.fromPoint(x0, y0, p)) { pt = [x0, y0]; if (!revealed) { revealed = true; cfg.reveal && ($("reveal").textContent = "Ocultar solución"); } sync(); }
+    });
+  }
+
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  mq.addEventListener && mq.addEventListener("change", draw);
+  new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  window.addEventListener("resize", resize);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+  resize(); sync();
+})();
+
+</script>
+
+</html>

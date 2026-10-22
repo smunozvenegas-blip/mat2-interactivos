@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Interactivos Matemáticas II</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+/* Layout: una columna de tarjetas enlazadas, agrupadas por clase */
+:root {
+  --bg: #f7f8fa; --panel: #ffffff; --fg: #1c2230; --muted: #5d6676; --line: #d5dae3; --accent: #1f5fbf;
+  --f-display: "Literata", Georgia, serif;
+  --f-body: "IBM Plex Sans", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #12151c; --panel: #1a1f29; --fg: #e6e9ef; --muted: #9aa3b2; --line: #2c3341; --accent: #7fb0ff; color-scheme: dark; }
+}
+body {
+  margin: 0; background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 40px;
+}
+.wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 20px; }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: 1.6rem; margin: 0; text-wrap: balance; }
+h2 { font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 0; font-weight: 500; }
+p { margin: 0; color: var(--muted); max-width: 65ch; }
+section { display: grid; gap: 10px; }
+.list { display: grid; gap: 8px; }
+a.item {
+  display: grid; gap: 2px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--panel); color: var(--fg); text-decoration: none;
+}
+a.item:hover, a.item:focus-visible { border-color: var(--accent); outline: none; }
+a.item b { font-weight: 500; }
+a.item span { color: var(--muted); font-size: 0.9rem; }
+.m { font-family: var(--f-mono); font-size: 0.95em; }
+a { color: var(--accent); }
+</style>
+<div class="wrap">
+  <header style="display:grid;gap:6px">
+    <h1>Interactivos de Matemáticas II</h1>
+    <p>Mat II IBM y PEMBQ 2026, Facultad de Ciencias, Universidad de Chile. Campos de pendientes y soluciones de las ecuaciones diferenciales vistas en clase.</p>
+  </header>
+  <section>
+    <h2>EDO separables · IBM Clase 25 y PEMBQ Clase 30</h2>
+    <div class="list">
+      <a class="item" href="edo-3x2.html"><b class="m">dy/dx = 3x²</b><span>Traslaciones verticales de y = x³</span></a>
+      <a class="item" href="edo-2y.html"><b class="m">dy/dx = 2y</b><span>y = M·e^(2x) y la solución constante y = 0</span></a>
+      <a class="item" href="edo-cos2.html"><b class="m">dy/dx = x³·cos²(y)</b><span>Franjas entre las soluciones constantes y = π/2 + kπ</span></a>
+    </div>
+  </section>
+  <section>
+    <h2>Modelos de población · IBM Clase 25</h2>
+    <div class="list">
+      <a class="item" href="edo-bacterias-exp.html"><b class="m">Bacterias: crecimiento exponencial</b><span>Se duplican cada 20 minutos</span></a>
+      <a class="item" href="edo-bacterias-log.html"><b class="m">Bacterias: crecimiento logístico</b><span>Ejercicio con capacidad de carga; solución oculta</span></a>
+      <a class="item" href="edo-peces-log.html"><b class="m">Peces en un estanque: logístico</b><span>Mueve r, K y P(0)</span></a>
+    </div>
+  </section>
+  <p>¿Problemas para abrirlos en el celular? Lee el <a href="instructivo_interactivos.pdf">instructivo</a>.</p>
+</div>
+</html>
