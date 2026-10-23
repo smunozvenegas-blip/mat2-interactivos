@@ -172,8 +172,8 @@ const CONFIG = {
     d.querySelector("input").addEventListener("input", e => { cur = parseFloat(e.target.value); sync(); });
   }
   const opts = document.createElement("div"); opts.className = "ctl";
-  let oh = `<span class="lbl">Mostrar</span><label class="chk"><input id="field" type="checkbox" checked> campo de pendientes</label>`;
-  if (cfg.family) oh += `<label class="chk"><input id="family" type="checkbox"> familia de soluciones</label>`;
+  let oh = `<span class="lbl">Mostrar</span><label class="chk"><input id="field" type="checkbox" checked> ${cfg.fieldLabel || "campo de pendientes"}</label>`;
+  if (cfg.family) oh += `<label class="chk"><input id="family" type="checkbox"> ${cfg.familyLabel || "familia de soluciones"}</label>`;
   if (cfg.logY) oh += `<label class="chk"><input id="log" type="checkbox"> escala logarítmica en el eje vertical</label>`;
   if (cfg.reveal) oh += `<button class="btn" type="button" id="reveal">${cfg.reveal}</button>`;
   opts.innerHTML = oh; box.appendChild(opts);
