@@ -112,6 +112,8 @@ const CONFIG = {
   let pt = null;
   let revealed = !cfg.reveal;
   let ylog = false;
+  const T = cfg.tangent || null;          // rectas tangentes (página de primitivas)
+  let tx0 = T ? T.x0 : null;
   const M = { l: 58, r: 14, t: 14, b: 36 };
   let W = 0, H = 0;
   const [X0, X1] = cfg.X;
@@ -141,14 +143,25 @@ const CONFIG = {
     box.appendChild(d);
     d.querySelector("input").addEventListener("input", e => { cur = parseFloat(e.target.value); sync(); });
   }
+  if (T) {
+    const d = document.createElement("div"); d.className = "ctl";
+    d.innerHTML = `<label class="lbl" for="tx0">${T.label} = <span class="m tab" id="v-tx0"></span></label>
+      <input id="tx0" type="range" min="${T.min}" max="${T.max}" step="${T.step}" value="${T.x0}">`;
+    box.appendChild(d);
+    d.querySelector("input").addEventListener("input", e => { tx0 = parseFloat(e.target.value); sync(); });
+  }
   const opts = document.createElement("div"); opts.className = "ctl";
   let oh = `<span class="lbl">Mostrar</span><label class="chk"><input id="field" type="checkbox" checked> ${cfg.fieldLabel || "campo de pendientes"}</label>`;
   if (cfg.family) oh += `<label class="chk"><input id="family" type="checkbox"> ${cfg.familyLabel || "familia de soluciones"}</label>`;
   if (cfg.logY) oh += `<label class="chk"><input id="log" type="checkbox"> escala logarítmica en el eje vertical</label>`;
+  if (T) oh += `<label class="chk"><input id="tan" type="checkbox" checked> ${T.tanLabel}</label>`
+    + `<label class="chk"><input id="par" type="checkbox"> ${T.parLabel}</label>`;
   if (cfg.reveal) oh += `<button class="btn" type="button" id="reveal">${cfg.reveal}</button>`;
   opts.innerHTML = oh; box.appendChild(opts);
   $("field").addEventListener("change", draw);
   cfg.family && $("family").addEventListener("change", draw);
+  T && $("tan").addEventListener("change", draw);
+  T && $("par").addEventListener("change", draw);
   cfg.logY && $("log").addEventListener("change", e => { ylog = e.target.checked; draw(); });
   cfg.reveal && $("reveal").addEventListener("click", () => {
     revealed = !revealed; $("reveal").textContent = revealed ? "Ocultar solución" : cfg.reveal; sync();
@@ -247,6 +260,22 @@ const CONFIG = {
     if (cfg.ghost) curve(x => cfg.ghost(x, p), tok("--ghost"), 2, true);
     if (revealed) curve(x => cfg.sol(x, p), tok("--curve"), 3);
 
+    if (T && $("par").checked) {
+      // la recta vertical x = x0 y, sobre ella, la tangente de cada primitiva de la familia
+      ctx.strokeStyle = tok("--axis"); ctx.lineWidth = 1; ctx.setLineDash([3, 4]); ctx.beginPath();
+      ctx.moveTo(px(tx0), M.t); ctx.lineTo(px(tx0), H - M.b); ctx.stroke(); ctx.setLineDash([]);
+      const qs = cfg.family(p);
+      if (!(cfg.family && $("family").checked)) qs.forEach(q => curve(x => cfg.sol(x, q), tok("--curve-soft"), 1.2));
+      qs.forEach(q => {
+        const yk = cfg.sol(tx0, q), m = cfg.f(tx0, yk, q);
+        curve(x => Math.abs(x - tx0) <= T.half ? yk + m * (x - tx0) : NaN, tok("--ghost"), 1.6);
+        dot(tx0, yk, tok("--ghost"), 3.5);
+      });
+    }
+    if (T && $("tan").checked) {
+      const y0 = cfg.sol(tx0, p), m = cfg.f(tx0, y0, p);
+      curve(x => y0 + m * (x - tx0), tok("--ghost"), 2.4);
+    }
     if (cfg.start) { const [sx, sy] = cfg.start(p); dot(sx, sy, tok("--point")); }
     if (pt) dot(pt[0], pt[1], tok("--point"));
     if (revealed && cur !== null) {
@@ -259,7 +288,7 @@ const CONFIG = {
     }
     ctx.restore();
   }
-  function dot(x, y, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(px(x), py(y), 5.5, 0, 2 * Math.PI); ctx.fill(); }
+  function dot(x, y, color, r) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(px(x), py(y), r || 5.5, 0, 2 * Math.PI); ctx.fill(); }
 
   function sync() {
     cfg.params.filter(q => !q.hidden).forEach(q => {
@@ -267,6 +296,7 @@ const CONFIG = {
       $("p-" + q.id).value = Math.max(q.min, Math.min(q.max, p[q.id]));
     });
     if (cfg.cursor) $("v-cur").textContent = nf(cur, cfg.cursor.d);
+    if (T) { $("v-tx0").textContent = nf(tx0, T.d); $("tx0").value = Math.max(T.min, Math.min(T.max, tx0)); pt = [tx0, cfg.sol(tx0, p)]; }
     $("formula").textContent = cfg.formula(p, revealed);
     $("detail").textContent = cfg.detail(p, cur, pt, revealed);
     draw();
@@ -278,7 +308,7 @@ const CONFIG = {
       const r = cv.getBoundingClientRect(), s = e.clientX - r.left, t = e.clientY - r.top;
       if (s < M.l || s > W - M.r || t < M.t || t > H - M.b) return;
       const x0 = ix(s), y0 = iy(t);
-      if (cfg.fromPoint(x0, y0, p)) { pt = [x0, y0]; if (!revealed) { revealed = true; cfg.reveal && ($("reveal").textContent = "Ocultar solución"); } sync(); }
+      if (cfg.fromPoint(x0, y0, p)) { pt = [x0, y0]; if (T) tx0 = Math.max(T.min, Math.min(T.max, x0)); if (!revealed) { revealed = true; cfg.reveal && ($("reveal").textContent = "Ocultar solución"); } sync(); }
     });
   }
 
