@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pausa y decide: métodos de integración</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: una columna de tarjetas, una pregunta por tarjeta; la retroalimentación aparece bajo la alternativa elegida */
+:root {
+  --bg: #f7f8fa; --panel: #ffffff; --fg: #1c2230; --muted: #5d6676; --line: #d5dae3; --accent: #1f5fbf;
+  --ok: #0f766e; --ok-soft: rgba(15, 118, 110, 0.10); --no: #c2410c; --no-soft: rgba(194, 65, 12, 0.10);
+  --f-display: "Literata", Georgia, serif;
+  --f-body: "IBM Plex Sans", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12151c; --panel: #1a1f29; --fg: #e6e9ef; --muted: #9aa3b2; --line: #2c3341; --accent: #7fb0ff;
+    --ok: #5eead4; --ok-soft: rgba(94, 234, 212, 0.10); --no: #fb923c; --no-soft: rgba(251, 146, 60, 0.12);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12151c; --panel: #1a1f29; --fg: #e6e9ef; --muted: #9aa3b2; --line: #2c3341; --accent: #7fb0ff;
+  --ok: #5eead4; --ok-soft: rgba(94, 234, 212, 0.10); --no: #fb923c; --no-soft: rgba(251, 146, 60, 0.12);
+  color-scheme: dark;
+}
+body {
+  margin: 0; background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+}
+.wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 18px; }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: 1.6rem; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); margin: 0; max-width: 65ch; }
+.m { font-family: var(--f-mono); font-size: 0.95em; white-space: nowrap; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.num { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.q { margin: 0; overflow-wrap: anywhere; }
+.opts { display: grid; gap: 8px; }
+button.opt {
+  font: inherit; text-align: left; color: var(--fg); background: var(--panel); cursor: pointer;
+  border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: grid; gap: 6px;
+}
+button.opt:hover { border-color: var(--accent); }
+button.opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.opt.ok { border-color: var(--ok); background: var(--ok-soft); }
+button.opt.no { border-color: var(--no); background: var(--no-soft); }
+.fb { font-size: 0.93rem; }
+.fb b { font-weight: 500; }
+button.opt.ok .fb b { color: var(--ok); }
+button.opt.no .fb b { color: var(--no); }
+.tally { position: sticky; bottom: 12px; justify-self: center; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 999px; padding: 6px 16px; color: var(--muted); font-size: 0.9rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.tally b { color: var(--fg); font-weight: 500; }
+.btn { justify-self: start; font: inherit; font-weight: 500; padding: 6px 14px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--panel); color: var(--accent); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+sup { line-height: 0; }
+a { color: var(--accent); }
+</style>
+<div class="wrap">
+  <header style="display:grid;gap:6px">
+    <h1>Pausa y decide: ¿directa, sustitución o partes?</h1>
+    <p class="sub">Diez preguntas para practicar la <em>decisión</em> antes de calcular. Elige una alternativa y lee la explicación; si no acertaste, vuelve a intentarlo: puedes cambiar de alternativa las veces que quieras. Nada de esto se envía ni se califica.</p>
+  </header>
+  <div id="quiz" class="wrap" style="gap:14px"></div>
+  <button class="btn" id="reset" type="button">Empezar de nuevo</button>
+  <p class="sub">Mat II 2026, Facultad de Ciencias, Universidad de Chile. Más material en <a href="index.html">Interactivos de Matemáticas II</a>.</p>
+  <div class="tally" id="tally" aria-live="polite"></div>
+</div>
+<script>
+const Q = [
+  { q: `¿Cómo calcularías <span class="m">∫ 2x·e<sup>x²</sup> dx</span>?`,
+    o: [
+      ['Primitiva directa: <span class="m">e<sup>x²</sup>·x² + C</span>', false, 'Derivando <span class="m">e<sup>x²</sup>·x²</span> no se obtiene el integrando. No hay una primitiva conocida para un producto así “a la vista”.'],
+      ['Sustitución con <span class="m">u = x²</span>', true, 'Aparece <span class="m">x²</span> dentro de la exponencial y su derivada, <span class="m">2x</span>, multiplicando: <span class="m">du = 2x dx</span>. Queda <span class="m">∫ e<sup>u</sup> du = e<sup>x²</sup> + C</span>.'],
+      ['Por partes, con <span class="m">u = 2x</span> y <span class="m">dv = e<sup>x²</sup> dx</span>', false, 'Para usar partes habría que conocer una primitiva de <span class="m">e<sup>x²</sup></span>, que no es elemental. Antes pregúntate si está la derivada de algo que aparece dentro.'],
+    ] },
+  { q: `En <span class="m">∫ x·ln(x) dx</span>, por partes, ¿qué conviene elegir?`,
+    o: [
+      ['<span class="m">u = x</span> y <span class="m">dv = ln(x) dx</span>', false, 'Para obtener <span class="m">v</span> tendrías que integrar <span class="m">ln(x)</span>, que es justamente lo difícil. Se elige como <span class="m">dv</span> lo que sabes integrar.'],
+      ['<span class="m">u = ln(x)</span> y <span class="m">dv = x dx</span>', true, 'Al derivar, <span class="m">ln(x)</span> se simplifica a <span class="m">1/x</span>, y <span class="m">v = x²/2</span>. Queda <span class="m">∫ (x²/2)·(1/x) dx = ∫ x/2 dx</span>, que es directa. Resultado: <span class="m">(x²/2)·ln(x) − x²/4 + C</span>.'],
+      ['Sustitución con <span class="m">u = ln(x)</span>', false, 'Sería <span class="m">du = (1/x) dx</span>, pero en el integrando no aparece <span class="m">1/x</span> sino <span class="m">x</span>: la sustitución no cierra.'],
+    ] },
+  { q: `¿Y en <span class="m">∫ ln(x)/x dx</span>?`,
+    o: [
+      ['Por partes, con <span class="m">u = ln(x)</span>', false, 'Se puede intentar, pero hay un camino más corto: mira si está la derivada de algo que aparece en el integrando.'],
+      ['Sustitución con <span class="m">u = ln(x)</span>', true, 'Ahora sí está <span class="m">du = (1/x) dx</span>: <span class="m">∫ u du = u²/2 + C = (ln(x))²/2 + C</span>. Compárala con la pregunta anterior: un solo cambio en el integrando cambia el método.'],
+      ['Primitiva directa: <span class="m">ln(x)·ln(x) + C</span>', false, 'Deriva <span class="m">(ln(x))²</span>: da <span class="m">2·ln(x)/x</span>, el doble del integrando. Siempre se puede verificar derivando.'],
+    ] },
+  { q: `En <span class="m">∫ (x+1)/(x²+2x+7)³ dx</span>, con <span class="m">u = x²+2x+7</span>, el factor <span class="m">(x+1) dx</span> es igual a:`,
+    o: [
+      ['<span class="m">du</span>', false, 'Como <span class="m">du = (2x+2) dx = 2·(x+1) dx</span>, falta ajustar la constante 2.'],
+      ['<span class="m">du/2</span>', true, '<span class="m">du = (2x+2) dx = 2·(x+1) dx</span>, así que <span class="m">(x+1) dx = du/2</span>. La integral queda <span class="m">(1/2)·∫ u<sup>−3</sup> du</span>.'],
+      ['<span class="m">2·du</span>', false, 'Al revés: <span class="m">du</span> es el doble de <span class="m">(x+1) dx</span>, así que <span class="m">(x+1) dx</span> es la mitad de <span class="m">du</span>.'],
+    ] },
+  { q: `<span class="m">∫ cos(5x) dx</span> es igual a:`,
+    o: [
+      ['<span class="m">sen(5x) + C</span>', false, 'Deriva <span class="m">sen(5x)</span>: por la regla de la cadena da <span class="m">5·cos(5x)</span>, no <span class="m">cos(5x)</span>.'],
+      ['<span class="m">sen(5x)/5 + C</span>', true, 'Con <span class="m">u = 5x</span>, <span class="m">dx = du/5</span>: <span class="m">(1/5)·∫ cos(u) du = sen(5x)/5 + C</span>. El factor <span class="m">1/5</span> compensa la regla de la cadena.'],
+      ['<span class="m">5·sen(5x) + C</span>', false, 'Su derivada es <span class="m">25·cos(5x)</span>. La constante va dividiendo, no multiplicando.'],
+    ] },
+  { q: `En <span class="m">∫ x²·(x³+4)⁵ dx</span>, con <span class="m">u = x³+4</span>, se llega a <span class="m">(1/3)·∫ u⁵ du</span>. ¿Cuál es la respuesta final?`,
+    o: [
+      ['<span class="m">u⁶/18 + C</span>', false, 'El cálculo en <span class="m">u</span> está bien, pero la pregunta era en <span class="m">x</span>: falta volver a la variable original.'],
+      ['<span class="m">(x³+4)⁶/18 + C</span>', true, '<span class="m">(1/3)·u⁶/6 = u⁶/18</span> y luego se reemplaza <span class="m">u = x³+4</span>. La respuesta se escribe en la variable del enunciado.'],
+      ['<span class="m">(x³+4)⁶/6 + C</span>', false, 'Se perdió el <span class="m">1/3</span> que venía de <span class="m">x² dx = du/3</span>. Derivando se nota: da el triple del integrando.'],
+    ] },
+  { q: `Alguien obtuvo <span class="m">∫ x·e<sup>x</sup> dx = x·e<sup>x</sup> + C</span>. ¿Está bien?`,
+    o: [
+      ['Sí', false, 'Verifica derivando: <span class="m">(x·e<sup>x</sup>)′ = e<sup>x</sup> + x·e<sup>x</sup></span>, que no es el integrando.'],
+      ['No: al derivar sobra un término', true, '<span class="m">(x·e<sup>x</sup>)′ = e<sup>x</sup> + x·e<sup>x</sup></span>. Por partes (<span class="m">u = x</span>, <span class="m">dv = e<sup>x</sup> dx</span>) se obtiene <span class="m">x·e<sup>x</sup> − e<sup>x</sup> + C</span>, y esa sí se deriva al integrando.'],
+      ['No se puede saber sin rehacer la integral', false, 'Sí se puede: una primitiva se verifica derivándola. Es más rápido que rehacer el cálculo.'],
+    ] },
+  { q: `En <span class="m">∫ x²·e<sup>x</sup> dx</span> se elige <span class="m">u = x²</span> y <span class="m">dv = e<sup>x</sup> dx</span>. ¿Por qué?`,
+    o: [
+      ['Porque <span class="m">x²</span> se simplifica al derivar', true, 'Al derivar, <span class="m">x²</span> pasa a <span class="m">2x</span>, y <span class="m">e<sup>x</sup></span> no cambia al integrar. Aplicando partes dos veces se llega a <span class="m">(x² − 2x + 2)·e<sup>x</sup> + C</span>.'],
+      ['Porque <span class="m">e<sup>x</sup></span> se complica al derivar', false, '<span class="m">e<sup>x</sup></span> no se complica ni al derivar ni al integrar. La razón está en el otro factor.'],
+      ['Da lo mismo cuál se elige', false, 'Con <span class="m">u = e<sup>x</sup></span> y <span class="m">dv = x² dx</span> aparece <span class="m">∫ (x³/3)·e<sup>x</sup> dx</span>: la potencia sube y la integral queda peor que la original.'],
+    ] },
+  { q: `¿Cómo calcularías <span class="m">∫ e<sup>x</sup>·sen(e<sup>x</sup>) dx</span>?`,
+    o: [
+      ['Por partes, con <span class="m">u = sen(e<sup>x</sup>)</span>', false, 'Al derivar <span class="m">sen(e<sup>x</sup>)</span> aparece <span class="m">cos(e<sup>x</sup>)·e<sup>x</sup></span>: no se simplifica. Busca primero la derivada de algo que aparezca dentro.'],
+      ['Sustitución con <span class="m">u = e<sup>x</sup></span>', true, '<span class="m">du = e<sup>x</sup> dx</span> está en el integrando: <span class="m">∫ sen(u) du = −cos(u) + C = −cos(e<sup>x</sup>) + C</span>.'],
+      ['Primitiva directa: <span class="m">−cos(e<sup>x</sup>) + C</span>, sin método', false, 'El resultado es correcto, pero no es una primitiva de la tabla: para justificarlo hace falta la sustitución <span class="m">u = e<sup>x</sup></span> (o derivar el resultado y comprobar).'],
+    ] },
+  { q: `Para <span class="m">∫ sen(x)·cos(x) dx</span>, Ana usa <span class="m">u = sen(x)</span> y obtiene <span class="m">sen²(x)/2 + C</span>. Beto usa <span class="m">u = cos(x)</span> y obtiene <span class="m">−cos²(x)/2 + C</span>. ¿Quién tiene razón?`,
+    o: [
+      ['Solo Ana', false, 'Deriva la respuesta de Beto: <span class="m">(−cos²(x)/2)′ = cos(x)·sen(x)</span>. También está bien.'],
+      ['Solo Beto', false, 'Deriva la respuesta de Ana: <span class="m">(sen²(x)/2)′ = sen(x)·cos(x)</span>. También está bien.'],
+      ['Los dos: sus primitivas difieren en una constante', true, 'Por la identidad pitagórica, <span class="m">sen²(x)/2 − (−cos²(x)/2) = 1/2</span>, que es constante. Dos primitivas de la misma función difieren en una constante, y el <span class="m">+ C</span> la absorbe.'],
+    ] },
+];
+const quiz = document.getElementById('quiz'), tally = document.getElementById('tally');
+const first = new Array(Q.length).fill(null), solved = new Array(Q.length).fill(false);
+function render() {
+  quiz.innerHTML = '';
+  Q.forEach((item, i) => {
+    const card = document.createElement('section'); card.className = 'card';
+    card.innerHTML = `<div class="num">Pregunta ${i + 1} de ${Q.length}</div><p class="q">${item.q}</p><div class="opts"></div>`;
+    const opts = card.querySelector('.opts');
+    item.o.forEach(([txt, ok, fb]) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt';
+      b.innerHTML = `<span>${txt}</span>`;
+      b.addEventListener('click', () => {
+        opts.querySelectorAll('.opt').forEach(x => { x.classList.remove('ok', 'no'); x.querySelector('.fb')?.remove(); x.setAttribute('aria-pressed', 'false'); });
+        b.classList.add(ok ? 'ok' : 'no'); b.setAttribute('aria-pressed', 'true');
+        const f = document.createElement('span'); f.className = 'fb';
+        f.innerHTML = `<b>${ok ? 'Correcto.' : 'Revisa.'}</b> ${fb}`; b.appendChild(f);
+        if (first[i] === null) first[i] = ok;
+        if (ok) solved[i] = true;
+        update();
+      });
+      opts.appendChild(b);
+    });
+    quiz.appendChild(card);
+  });
+  update();
+}
+function update() {
+  const s = solved.filter(Boolean).length, f = first.filter(x => x === true).length;
+  tally.innerHTML = `Resueltas: <b>${s} de ${Q.length}</b> · al primer intento: <b>${f}</b>`;
+}
+document.getElementById('reset').addEventListener('click', () => { first.fill(null); solved.fill(false); render(); window.scrollTo(0, 0); });
+render();
+</script>
+</html>
