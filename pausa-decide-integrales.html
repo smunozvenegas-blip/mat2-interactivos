@@ -4,6 +4,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pausa y decide: métodos de integración</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <style>
 /* Layout: una columna de tarjetas, una pregunta por tarjeta; la retroalimentación aparece bajo la alternativa elegida */
 :root {
@@ -35,6 +38,9 @@ body {
 h1 { font-family: var(--f-display); font-weight: 600; font-size: 1.6rem; margin: 0; text-wrap: balance; }
 .sub { color: var(--muted); margin: 0; max-width: 65ch; }
 .m { font-family: var(--f-mono); font-size: 0.95em; white-space: nowrap; }
+.katex { font-size: 1.08em; }
+.q .katex-display, .q .katex { white-space: nowrap; }
+.q { overflow-x: auto; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
 .num { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .q { margin: 0; overflow-wrap: anywhere; }
@@ -71,68 +77,74 @@ a { color: var(--accent); }
   <div class="tally" id="tally" aria-live="polite"></div>
 </div>
 <script>
+const R = String.raw;
 const Q = [
-  { q: `¿Cómo calcularías <span class="m">∫ 2x·e<sup>x²</sup> dx</span>?`,
+  { q: R`¿Cómo calcularías \(\displaystyle\int 2x\cdot e^{x^2}\,dx\)?`,
     o: [
-      ['Primitiva directa: <span class="m">e<sup>x²</sup>·x² + C</span>', false, 'Derivando <span class="m">e<sup>x²</sup>·x²</span> no se obtiene el integrando. No hay una primitiva conocida para un producto así “a la vista”.'],
-      ['Sustitución con <span class="m">u = x²</span>', true, 'Aparece <span class="m">x²</span> dentro de la exponencial y su derivada, <span class="m">2x</span>, multiplicando: <span class="m">du = 2x dx</span>. Queda <span class="m">∫ e<sup>u</sup> du = e<sup>x²</sup> + C</span>.'],
-      ['Por partes, con <span class="m">u = 2x</span> y <span class="m">dv = e<sup>x²</sup> dx</span>', false, 'Para usar partes habría que conocer una primitiva de <span class="m">e<sup>x²</sup></span>, que no es elemental. Antes pregúntate si está la derivada de algo que aparece dentro.'],
+      [R`Primitiva directa: \(e^{x^2}\cdot x^2 + C\)`, false, R`Derivando \(e^{x^2}\cdot x^2\) no se obtiene el integrando. No hay una primitiva conocida para un producto así «a la vista».`],
+      [R`Sustitución con \(u = x^2\)`, true, R`Aparece \(x^2\) dentro de la exponencial y su derivada, \(2x\), multiplicando: \(du = 2x\,dx\). Queda \(\int e^{u}\,du = e^{x^2} + C\).`],
+      [R`Por partes, con \(u = 2x\) y \(dv = e^{x^2}\,dx\)`, false, R`Para usar partes habría que conocer una primitiva de \(e^{x^2}\), que no es elemental. Antes pregúntate si está la derivada de algo que aparece dentro.`],
     ] },
-  { q: `En <span class="m">∫ x·ln(x) dx</span>, por partes, ¿qué conviene elegir?`,
+  { q: R`En \(\displaystyle\int x\cdot\ln(x)\,dx\), por partes, ¿qué conviene elegir?`,
     o: [
-      ['<span class="m">u = x</span> y <span class="m">dv = ln(x) dx</span>', false, 'Para obtener <span class="m">v</span> tendrías que integrar <span class="m">ln(x)</span>, que es justamente lo difícil. Se elige como <span class="m">dv</span> lo que sabes integrar.'],
-      ['<span class="m">u = ln(x)</span> y <span class="m">dv = x dx</span>', true, 'Al derivar, <span class="m">ln(x)</span> se simplifica a <span class="m">1/x</span>, y <span class="m">v = x²/2</span>. Queda <span class="m">∫ (x²/2)·(1/x) dx = ∫ x/2 dx</span>, que es directa. Resultado: <span class="m">(x²/2)·ln(x) − x²/4 + C</span>.'],
-      ['Sustitución con <span class="m">u = ln(x)</span>', false, 'Sería <span class="m">du = (1/x) dx</span>, pero en el integrando no aparece <span class="m">1/x</span> sino <span class="m">x</span>: la sustitución no cierra.'],
+      [R`\(u = x\) y \(dv = \ln(x)\,dx\)`, false, R`Para obtener \(v\) tendrías que integrar \(\ln(x)\), que es justamente lo difícil. Se elige como \(dv\) lo que sabes integrar.`],
+      [R`\(u = \ln(x)\) y \(dv = x\,dx\)`, true, R`Al derivar, \(\ln(x)\) se simplifica a \(\dfrac{1}{x}\), y \(v = \dfrac{x^2}{2}\). Queda \(\int \dfrac{x^2}{2}\cdot\dfrac{1}{x}\,dx = \int \dfrac{x}{2}\,dx\), que es directa. Resultado: \(\dfrac{x^2}{2}\cdot\ln(x) - \dfrac{x^2}{4} + C\).`],
+      [R`Sustitución con \(u = \ln(x)\)`, false, R`Sería \(du = \dfrac{1}{x}\,dx\), pero en el integrando no aparece \(\dfrac{1}{x}\) sino \(x\): la sustitución no cierra.`],
     ] },
-  { q: `¿Y en <span class="m">∫ ln(x)/x dx</span>?`,
+  { q: R`¿Y en \(\displaystyle\int \dfrac{\ln(x)}{x}\,dx\)?`,
     o: [
-      ['Por partes, con <span class="m">u = ln(x)</span>', false, 'Se puede intentar, pero hay un camino más corto: mira si está la derivada de algo que aparece en el integrando.'],
-      ['Sustitución con <span class="m">u = ln(x)</span>', true, 'Ahora sí está <span class="m">du = (1/x) dx</span>: <span class="m">∫ u du = u²/2 + C = (ln(x))²/2 + C</span>. Compárala con la pregunta anterior: un solo cambio en el integrando cambia el método.'],
-      ['Primitiva directa: <span class="m">ln(x)·ln(x) + C</span>', false, 'Deriva <span class="m">(ln(x))²</span>: da <span class="m">2·ln(x)/x</span>, el doble del integrando. Siempre se puede verificar derivando.'],
+      [R`Por partes, con \(u = \ln(x)\)`, false, R`Se puede intentar, pero hay un camino más corto: mira si está la derivada de algo que aparece en el integrando.`],
+      [R`Sustitución con \(u = \ln(x)\)`, true, R`Ahora sí está \(du = \dfrac{1}{x}\,dx\): \(\int u\,du = \dfrac{u^2}{2} + C = \dfrac{(\ln(x))^2}{2} + C\). Compárala con la pregunta anterior: un solo cambio en el integrando cambia el método.`],
+      [R`Primitiva directa: \(\ln(x)\cdot\ln(x) + C\)`, false, R`Deriva \((\ln(x))^2\): da \(\dfrac{2\ln(x)}{x}\), el doble del integrando. Siempre se puede verificar derivando.`],
     ] },
-  { q: `En <span class="m">∫ (x+1)/(x²+2x+7)³ dx</span>, con <span class="m">u = x²+2x+7</span>, el factor <span class="m">(x+1) dx</span> es igual a:`,
+  { q: R`En \(\displaystyle\int \dfrac{x+1}{\left(x^2+2x+7\right)^3}\,dx\), con \(u = x^2+2x+7\), el factor \((x+1)\,dx\) es igual a:`,
     o: [
-      ['<span class="m">du</span>', false, 'Como <span class="m">du = (2x+2) dx = 2·(x+1) dx</span>, falta ajustar la constante 2.'],
-      ['<span class="m">du/2</span>', true, '<span class="m">du = (2x+2) dx = 2·(x+1) dx</span>, así que <span class="m">(x+1) dx = du/2</span>. La integral queda <span class="m">(1/2)·∫ u<sup>−3</sup> du</span>.'],
-      ['<span class="m">2·du</span>', false, 'Al revés: <span class="m">du</span> es el doble de <span class="m">(x+1) dx</span>, así que <span class="m">(x+1) dx</span> es la mitad de <span class="m">du</span>.'],
+      [R`\(du\)`, false, R`Como \(du = (2x+2)\,dx = 2\cdot(x+1)\,dx\), falta ajustar la constante \(2\).`],
+      [R`\(\dfrac{du}{2}\)`, true, R`\(du = (2x+2)\,dx = 2\cdot(x+1)\,dx\), así que \((x+1)\,dx = \dfrac{du}{2}\). La integral queda \(\dfrac{1}{2}\int u^{-3}\,du\).`],
+      [R`\(2\cdot du\)`, false, R`Al revés: \(du\) es el doble de \((x+1)\,dx\), así que \((x+1)\,dx\) es la mitad de \(du\).`],
     ] },
-  { q: `<span class="m">∫ cos(5x) dx</span> es igual a:`,
+  { q: R`\(\displaystyle\int \cos(5x)\,dx\) es igual a:`,
     o: [
-      ['<span class="m">sen(5x) + C</span>', false, 'Deriva <span class="m">sen(5x)</span>: por la regla de la cadena da <span class="m">5·cos(5x)</span>, no <span class="m">cos(5x)</span>.'],
-      ['<span class="m">sen(5x)/5 + C</span>', true, 'Con <span class="m">u = 5x</span>, <span class="m">dx = du/5</span>: <span class="m">(1/5)·∫ cos(u) du = sen(5x)/5 + C</span>. El factor <span class="m">1/5</span> compensa la regla de la cadena.'],
-      ['<span class="m">5·sen(5x) + C</span>', false, 'Su derivada es <span class="m">25·cos(5x)</span>. La constante va dividiendo, no multiplicando.'],
+      [R`\(\sen(5x) + C\)`, false, R`Deriva \(\sen(5x)\): por la regla de la cadena da \(5\cos(5x)\), no \(\cos(5x)\).`],
+      [R`\(\dfrac{\sen(5x)}{5} + C\)`, true, R`Con \(u = 5x\), \(dx = \dfrac{du}{5}\): \(\dfrac{1}{5}\int \cos(u)\,du = \dfrac{\sen(5x)}{5} + C\). El factor \(\dfrac{1}{5}\) compensa la regla de la cadena.`],
+      [R`\(5\sen(5x) + C\)`, false, R`Su derivada es \(25\cos(5x)\). La constante va dividiendo, no multiplicando.`],
     ] },
-  { q: `En <span class="m">∫ x²·(x³+4)⁵ dx</span>, con <span class="m">u = x³+4</span>, se llega a <span class="m">(1/3)·∫ u⁵ du</span>. ¿Cuál es la respuesta final?`,
+  { q: R`En \(\displaystyle\int x^2\cdot\left(x^3+4\right)^5\,dx\), con \(u = x^3+4\), se llega a \(\dfrac{1}{3}\int u^5\,du\). ¿Cuál es la respuesta final?`,
     o: [
-      ['<span class="m">u⁶/18 + C</span>', false, 'El cálculo en <span class="m">u</span> está bien, pero la pregunta era en <span class="m">x</span>: falta volver a la variable original.'],
-      ['<span class="m">(x³+4)⁶/18 + C</span>', true, '<span class="m">(1/3)·u⁶/6 = u⁶/18</span> y luego se reemplaza <span class="m">u = x³+4</span>. La respuesta se escribe en la variable del enunciado.'],
-      ['<span class="m">(x³+4)⁶/6 + C</span>', false, 'Se perdió el <span class="m">1/3</span> que venía de <span class="m">x² dx = du/3</span>. Derivando se nota: da el triple del integrando.'],
+      [R`\(\dfrac{u^6}{18} + C\)`, false, R`El cálculo en \(u\) está bien, pero la pregunta era en \(x\): falta volver a la variable original.`],
+      [R`\(\dfrac{\left(x^3+4\right)^6}{18} + C\)`, true, R`\(\dfrac{1}{3}\cdot\dfrac{u^6}{6} = \dfrac{u^6}{18}\) y luego se reemplaza \(u = x^3+4\). La respuesta se escribe en la variable del enunciado.`],
+      [R`\(\dfrac{\left(x^3+4\right)^6}{6} + C\)`, false, R`Se perdió el \(\dfrac{1}{3}\) que venía de \(x^2\,dx = \dfrac{du}{3}\). Derivando se nota: da el triple del integrando.`],
     ] },
-  { q: `Alguien obtuvo <span class="m">∫ x·e<sup>x</sup> dx = x·e<sup>x</sup> + C</span>. ¿Está bien?`,
+  { q: R`Alguien obtuvo \(\displaystyle\int x\cdot e^{x}\,dx = x\cdot e^{x} + C\). ¿Está bien?`,
     o: [
-      ['Sí', false, 'Verifica derivando: <span class="m">(x·e<sup>x</sup>)′ = e<sup>x</sup> + x·e<sup>x</sup></span>, que no es el integrando.'],
-      ['No: al derivar sobra un término', true, '<span class="m">(x·e<sup>x</sup>)′ = e<sup>x</sup> + x·e<sup>x</sup></span>. Por partes (<span class="m">u = x</span>, <span class="m">dv = e<sup>x</sup> dx</span>) se obtiene <span class="m">x·e<sup>x</sup> − e<sup>x</sup> + C</span>, y esa sí se deriva al integrando.'],
-      ['No se puede saber sin rehacer la integral', false, 'Sí se puede: una primitiva se verifica derivándola. Es más rápido que rehacer el cálculo.'],
+      [R`Sí`, false, R`Verifica derivando: \(\left(x\cdot e^{x}\right)' = e^{x} + x\cdot e^{x}\), que no es el integrando.`],
+      [R`No: al derivar sobra un término`, true, R`\(\left(x\cdot e^{x}\right)' = e^{x} + x\cdot e^{x}\). Por partes (\(u = x\), \(dv = e^{x}\,dx\)) se obtiene \(x\cdot e^{x} - e^{x} + C\), y esa sí se deriva al integrando.`],
+      [R`No se puede saber sin rehacer la integral`, false, R`Sí se puede: una primitiva se verifica derivándola. Es más rápido que rehacer el cálculo.`],
     ] },
-  { q: `En <span class="m">∫ x²·e<sup>x</sup> dx</span> se elige <span class="m">u = x²</span> y <span class="m">dv = e<sup>x</sup> dx</span>. ¿Por qué?`,
+  { q: R`En \(\displaystyle\int x^2\cdot e^{x}\,dx\) se elige \(u = x^2\) y \(dv = e^{x}\,dx\). ¿Por qué?`,
     o: [
-      ['Porque <span class="m">x²</span> se simplifica al derivar', true, 'Al derivar, <span class="m">x²</span> pasa a <span class="m">2x</span>, y <span class="m">e<sup>x</sup></span> no cambia al integrar. Aplicando partes dos veces se llega a <span class="m">(x² − 2x + 2)·e<sup>x</sup> + C</span>.'],
-      ['Porque <span class="m">e<sup>x</sup></span> se complica al derivar', false, '<span class="m">e<sup>x</sup></span> no se complica ni al derivar ni al integrar. La razón está en el otro factor.'],
-      ['Da lo mismo cuál se elige', false, 'Con <span class="m">u = e<sup>x</sup></span> y <span class="m">dv = x² dx</span> aparece <span class="m">∫ (x³/3)·e<sup>x</sup> dx</span>: la potencia sube y la integral queda peor que la original.'],
+      [R`Porque \(x^2\) se simplifica al derivar`, true, R`Al derivar, \(x^2\) pasa a \(2x\), y \(e^{x}\) no cambia al integrar. Aplicando partes dos veces se llega a \(\left(x^2 - 2x + 2\right)\cdot e^{x} + C\).`],
+      [R`Porque \(e^{x}\) se complica al derivar`, false, R`\(e^{x}\) no se complica ni al derivar ni al integrar. La razón está en el otro factor.`],
+      [R`Da lo mismo cuál se elige`, false, R`Con \(u = e^{x}\) y \(dv = x^2\,dx\) aparece \(\int \dfrac{x^3}{3}\cdot e^{x}\,dx\): la potencia sube y la integral queda peor que la original.`],
     ] },
-  { q: `¿Cómo calcularías <span class="m">∫ e<sup>x</sup>·sen(e<sup>x</sup>) dx</span>?`,
+  { q: R`¿Cómo calcularías \(\displaystyle\int e^{x}\cdot\sen\left(e^{x}\right)dx\)?`,
     o: [
-      ['Por partes, con <span class="m">u = sen(e<sup>x</sup>)</span>', false, 'Al derivar <span class="m">sen(e<sup>x</sup>)</span> aparece <span class="m">cos(e<sup>x</sup>)·e<sup>x</sup></span>: no se simplifica. Busca primero la derivada de algo que aparezca dentro.'],
-      ['Sustitución con <span class="m">u = e<sup>x</sup></span>', true, '<span class="m">du = e<sup>x</sup> dx</span> está en el integrando: <span class="m">∫ sen(u) du = −cos(u) + C = −cos(e<sup>x</sup>) + C</span>.'],
-      ['Primitiva directa: <span class="m">−cos(e<sup>x</sup>) + C</span>, sin método', false, 'El resultado es correcto, pero no es una primitiva de la tabla: para justificarlo hace falta la sustitución <span class="m">u = e<sup>x</sup></span> (o derivar el resultado y comprobar).'],
+      [R`Por partes, con \(u = \sen\left(e^{x}\right)\)`, false, R`Al derivar \(\sen\left(e^{x}\right)\) aparece \(\cos\left(e^{x}\right)\cdot e^{x}\): no se simplifica. Busca primero la derivada de algo que aparezca dentro.`],
+      [R`Sustitución con \(u = e^{x}\)`, true, R`\(du = e^{x}\,dx\) está en el integrando: \(\int \sen(u)\,du = -\cos(u) + C = -\cos\left(e^{x}\right) + C\).`],
+      [R`Primitiva directa: \(-\cos\left(e^{x}\right) + C\), sin método`, false, R`El resultado es correcto, pero no es una primitiva de la tabla: para justificarlo hace falta la sustitución \(u = e^{x}\) (o derivar el resultado y comprobar).`],
     ] },
-  { q: `Para <span class="m">∫ sen(x)·cos(x) dx</span>, Ana usa <span class="m">u = sen(x)</span> y obtiene <span class="m">sen²(x)/2 + C</span>. Beto usa <span class="m">u = cos(x)</span> y obtiene <span class="m">−cos²(x)/2 + C</span>. ¿Quién tiene razón?`,
+  { q: R`Para \(\displaystyle\int \sen(x)\cdot\cos(x)\,dx\), Ana usa \(u = \sen(x)\) y obtiene \(\dfrac{\sen^2(x)}{2} + C\). Beto usa \(u = \cos(x)\) y obtiene \(-\dfrac{\cos^2(x)}{2} + C\). ¿Quién tiene razón?`,
     o: [
-      ['Solo Ana', false, 'Deriva la respuesta de Beto: <span class="m">(−cos²(x)/2)′ = cos(x)·sen(x)</span>. También está bien.'],
-      ['Solo Beto', false, 'Deriva la respuesta de Ana: <span class="m">(sen²(x)/2)′ = sen(x)·cos(x)</span>. También está bien.'],
-      ['Los dos: sus primitivas difieren en una constante', true, 'Por la identidad pitagórica, <span class="m">sen²(x)/2 − (−cos²(x)/2) = 1/2</span>, que es constante. Dos primitivas de la misma función difieren en una constante, y el <span class="m">+ C</span> la absorbe.'],
+      [R`Solo Ana`, false, R`Deriva la respuesta de Beto: \(\left(-\dfrac{\cos^2(x)}{2}\right)' = \cos(x)\cdot\sen(x)\). También está bien.`],
+      [R`Solo Beto`, false, R`Deriva la respuesta de Ana: \(\left(\dfrac{\sen^2(x)}{2}\right)' = \sen(x)\cdot\cos(x)\). También está bien.`],
+      [R`Los dos: sus primitivas difieren en una constante`, true, R`Por la identidad pitagórica, \(\dfrac{\sen^2(x)}{2} - \left(-\dfrac{\cos^2(x)}{2}\right) = \dfrac{1}{2}\), que es constante. Dos primitivas de la misma función difieren en una constante, y el \(+\,C\) la absorbe.`],
     ] },
 ];
+// Fórmulas con KaTeX; sin conexión queda el código TeX visible y la página sigue funcionando
+function tex(el) {
+  if (window.renderMathInElement) renderMathInElement(el, { delimiters: [{ left: '\\(', right: '\\)', display: false }],
+    macros: { '\\sen': '\\operatorname{sen}' }, throwOnError: false });
+}
 const quiz = document.getElementById('quiz'), tally = document.getElementById('tally');
 const first = new Array(Q.length).fill(null), solved = new Array(Q.length).fill(false);
 function render() {
@@ -148,7 +160,7 @@ function render() {
         opts.querySelectorAll('.opt').forEach(x => { x.classList.remove('ok', 'no'); x.querySelector('.fb')?.remove(); x.setAttribute('aria-pressed', 'false'); });
         b.classList.add(ok ? 'ok' : 'no'); b.setAttribute('aria-pressed', 'true');
         const f = document.createElement('span'); f.className = 'fb';
-        f.innerHTML = `<b>${ok ? 'Correcto.' : 'Revisa.'}</b> ${fb}`; b.appendChild(f);
+        f.innerHTML = `<b>${ok ? 'Correcto.' : 'Revisa.'}</b> ${fb}`; b.appendChild(f); tex(f);
         if (first[i] === null) first[i] = ok;
         if (ok) solved[i] = true;
         update();
@@ -156,6 +168,7 @@ function render() {
       opts.appendChild(b);
     });
     quiz.appendChild(card);
+    tex(card);
   });
   update();
 }
@@ -164,6 +177,6 @@ function update() {
   tally.innerHTML = `Resueltas: <b>${s} de ${Q.length}</b> · al primer intento: <b>${f}</b>`;
 }
 document.getElementById('reset').addEventListener('click', () => { first.fill(null); solved.fill(false); render(); window.scrollTo(0, 0); });
-render();
+document.addEventListener('DOMContentLoaded', render);
 </script>
 </html>
