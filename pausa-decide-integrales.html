@@ -83,13 +83,13 @@ const Q = [
   { q: R`¿Cómo calcularías \(\displaystyle\int 2x\cdot e^{x^2}\,dx\)?`,
     o: [
       [R`Primitiva directa: \(e^{x^2}\cdot x^2 + C\)`, false, R`Derivando \(e^{x^2}\cdot x^2\) no se obtiene el integrando. No hay una primitiva conocida para un producto así «a la vista».`],
-      [R`Sustitución con \(u = x^2\)`, true, R`Aparece \(x^2\) dentro de la exponencial y su derivada, \(2x\), multiplicando: \(du = 2x\,dx\). Queda \(\int e^{u}\,du = e^{x^2} + C\).`],
       [R`Por partes, con \(u = 2x\) y \(dv = e^{x^2}\,dx\)`, false, R`Para usar partes habría que conocer una primitiva de \(e^{x^2}\), que no es elemental. Antes pregúntate si está la derivada de algo que aparece dentro.`],
+      [R`Sustitución con \(u = x^2\)`, true, R`Aparece \(x^2\) dentro de la exponencial y su derivada, \(2x\), multiplicando: \(du = 2x\,dx\). Queda \(\int e^{u}\,du = e^{x^2} + C\).`],
     ] },
   { q: R`En \(\displaystyle\int x\cdot\ln(x)\,dx\), por partes, ¿qué conviene elegir?`,
     o: [
-      [R`\(u = x\) y \(dv = \ln(x)\,dx\)`, false, R`Para obtener \(v\) tendrías que integrar \(\ln(x)\), que es justamente lo difícil. Se elige como \(dv\) lo que sabes integrar.`],
       [R`\(u = \ln(x)\) y \(dv = x\,dx\)`, true, R`Al derivar, \(\ln(x)\) se simplifica a \(\dfrac{1}{x}\), y \(v = \dfrac{x^2}{2}\). Queda \(\int \dfrac{x^2}{2}\cdot\dfrac{1}{x}\,dx = \int \dfrac{x}{2}\,dx\), que es directa. Resultado: \(\dfrac{x^2}{2}\cdot\ln(x) - \dfrac{x^2}{4} + C\).`],
+      [R`\(u = x\) y \(dv = \ln(x)\,dx\)`, false, R`Para obtener \(v\) tendrías que integrar \(\ln(x)\), que es justamente lo difícil. Se elige como \(dv\) lo que sabes integrar.`],
       [R`Sustitución con \(u = \ln(x)\)`, false, R`Sería \(du = \dfrac{1}{x}\,dx\), pero en el integrando no aparece \(\dfrac{1}{x}\) sino \(x\): la sustitución no cierra.`],
     ] },
   { q: R`¿Y en \(\displaystyle\int \dfrac{\ln(x)}{x}\,dx\)?`,
@@ -101,20 +101,20 @@ const Q = [
   { q: R`En \(\displaystyle\int \dfrac{x+1}{\left(x^2+2x+7\right)^3}\,dx\), con \(u = x^2+2x+7\), el factor \((x+1)\,dx\) es igual a:`,
     o: [
       [R`\(du\)`, false, R`Como \(du = (2x+2)\,dx = 2\cdot(x+1)\,dx\), falta ajustar la constante \(2\).`],
-      [R`\(\dfrac{du}{2}\)`, true, R`\(du = (2x+2)\,dx = 2\cdot(x+1)\,dx\), así que \((x+1)\,dx = \dfrac{du}{2}\). La integral queda \(\dfrac{1}{2}\int u^{-3}\,du\).`],
       [R`\(2\cdot du\)`, false, R`Al revés: \(du\) es el doble de \((x+1)\,dx\), así que \((x+1)\,dx\) es la mitad de \(du\).`],
+      [R`\(\dfrac{du}{2}\)`, true, R`\(du = (2x+2)\,dx = 2\cdot(x+1)\,dx\), así que \((x+1)\,dx = \dfrac{du}{2}\). La integral queda \(\dfrac{1}{2}\int u^{-3}\,du\).`],
     ] },
   { q: R`\(\displaystyle\int \cos(5x)\,dx\) es igual a:`,
     o: [
-      [R`\(\sen(5x) + C\)`, false, R`Deriva \(\sen(5x)\): por la regla de la cadena da \(5\cos(5x)\), no \(\cos(5x)\).`],
       [R`\(\dfrac{\sen(5x)}{5} + C\)`, true, R`Con \(u = 5x\), \(dx = \dfrac{du}{5}\): \(\dfrac{1}{5}\int \cos(u)\,du = \dfrac{\sen(5x)}{5} + C\). El factor \(\dfrac{1}{5}\) compensa la regla de la cadena.`],
+      [R`\(\sen(5x) + C\)`, false, R`Deriva \(\sen(5x)\): por la regla de la cadena da \(5\cos(5x)\), no \(\cos(5x)\).`],
       [R`\(5\sen(5x) + C\)`, false, R`Su derivada es \(25\cos(5x)\). La constante va dividiendo, no multiplicando.`],
     ] },
   { q: R`En \(\displaystyle\int x^2\cdot\left(x^3+4\right)^5\,dx\), con \(u = x^3+4\), se llega a \(\dfrac{1}{3}\int u^5\,du\). ¿Cuál es la respuesta final?`,
     o: [
       [R`\(\dfrac{u^6}{18} + C\)`, false, R`El cálculo en \(u\) está bien, pero la pregunta era en \(x\): falta volver a la variable original.`],
-      [R`\(\dfrac{\left(x^3+4\right)^6}{18} + C\)`, true, R`\(\dfrac{1}{3}\cdot\dfrac{u^6}{6} = \dfrac{u^6}{18}\) y luego se reemplaza \(u = x^3+4\). La respuesta se escribe en la variable del enunciado.`],
       [R`\(\dfrac{\left(x^3+4\right)^6}{6} + C\)`, false, R`Se perdió el \(\dfrac{1}{3}\) que venía de \(x^2\,dx = \dfrac{du}{3}\). Derivando se nota: da el triple del integrando.`],
+      [R`\(\dfrac{\left(x^3+4\right)^6}{18} + C\)`, true, R`\(\dfrac{1}{3}\cdot\dfrac{u^6}{6} = \dfrac{u^6}{18}\) y luego se reemplaza \(u = x^3+4\). La respuesta se escribe en la variable del enunciado.`],
     ] },
   { q: R`Alguien obtuvo \(\displaystyle\int x\cdot e^{x}\,dx = x\cdot e^{x} + C\). ¿Está bien?`,
     o: [
@@ -124,21 +124,21 @@ const Q = [
     ] },
   { q: R`En \(\displaystyle\int x^2\cdot e^{x}\,dx\) se elige \(u = x^2\) y \(dv = e^{x}\,dx\). ¿Por qué?`,
     o: [
-      [R`Porque \(x^2\) se simplifica al derivar`, true, R`Al derivar, \(x^2\) pasa a \(2x\), y \(e^{x}\) no cambia al integrar. Aplicando partes dos veces se llega a \(\left(x^2 - 2x + 2\right)\cdot e^{x} + C\).`],
-      [R`Porque \(e^{x}\) se complica al derivar`, false, R`\(e^{x}\) no se complica ni al derivar ni al integrar. La razón está en el otro factor.`],
       [R`Da lo mismo cuál se elige`, false, R`Con \(u = e^{x}\) y \(dv = x^2\,dx\) aparece \(\int \dfrac{x^3}{3}\cdot e^{x}\,dx\): la potencia sube y la integral queda peor que la original.`],
+      [R`Porque \(e^{x}\) se complica al derivar`, false, R`\(e^{x}\) no se complica ni al derivar ni al integrar. La razón está en el otro factor.`],
+      [R`Porque \(x^2\) se simplifica al derivar`, true, R`Al derivar, \(x^2\) pasa a \(2x\), y \(e^{x}\) no cambia al integrar. Aplicando partes dos veces se llega a \(\left(x^2 - 2x + 2\right)\cdot e^{x} + C\).`],
     ] },
   { q: R`¿Cómo calcularías \(\displaystyle\int e^{x}\cdot\sen\left(e^{x}\right)dx\)?`,
     o: [
-      [R`Por partes, con \(u = \sen\left(e^{x}\right)\)`, false, R`Al derivar \(\sen\left(e^{x}\right)\) aparece \(\cos\left(e^{x}\right)\cdot e^{x}\): no se simplifica. Busca primero la derivada de algo que aparezca dentro.`],
       [R`Sustitución con \(u = e^{x}\)`, true, R`\(du = e^{x}\,dx\) está en el integrando: \(\int \sen(u)\,du = -\cos(u) + C = -\cos\left(e^{x}\right) + C\).`],
+      [R`Por partes, con \(u = \sen\left(e^{x}\right)\)`, false, R`Al derivar \(\sen\left(e^{x}\right)\) aparece \(\cos\left(e^{x}\right)\cdot e^{x}\): no se simplifica. Busca primero la derivada de algo que aparezca dentro.`],
       [R`Primitiva directa: \(-\cos\left(e^{x}\right) + C\), sin método`, false, R`El resultado es correcto, pero no es una primitiva de la tabla: para justificarlo hace falta la sustitución \(u = e^{x}\) (o derivar el resultado y comprobar).`],
     ] },
   { q: R`Para \(\displaystyle\int \sen(x)\cdot\cos(x)\,dx\), Ana usa \(u = \sen(x)\) y obtiene \(\dfrac{\sen^2(x)}{2} + C\). Beto usa \(u = \cos(x)\) y obtiene \(-\dfrac{\cos^2(x)}{2} + C\). ¿Quién tiene razón?`,
     o: [
       [R`Solo Ana`, false, R`Deriva la respuesta de Beto: \(\left(-\dfrac{\cos^2(x)}{2}\right)' = \cos(x)\cdot\sen(x)\). También está bien.`],
-      [R`Solo Beto`, false, R`Deriva la respuesta de Ana: \(\left(\dfrac{\sen^2(x)}{2}\right)' = \sen(x)\cdot\cos(x)\). También está bien.`],
       [R`Los dos: sus primitivas difieren en una constante`, true, R`Por la identidad pitagórica, \(\dfrac{\sen^2(x)}{2} - \left(-\dfrac{\cos^2(x)}{2}\right) = \dfrac{1}{2}\), que es constante. Dos primitivas de la misma función difieren en una constante, y el \(+\,C\) la absorbe.`],
+      [R`Solo Beto`, false, R`Deriva la respuesta de Ana: \(\left(\dfrac{\sen^2(x)}{2}\right)' = \sen(x)\cdot\cos(x)\). También está bien.`],
     ] },
 ];
 // Fórmulas con KaTeX; sin conexión queda el código TeX visible y la página sigue funcionando
