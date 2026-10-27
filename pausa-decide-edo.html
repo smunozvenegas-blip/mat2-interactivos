@@ -70,7 +70,7 @@ a { color: var(--accent); }
   <header style="display:grid;gap:6px">
     <p class="sub" style="font-size:0.9rem">Prof. Sergio Muñoz · Matemáticas II 2026 · Departamento de Matemáticas, Facultad de Ciencias, Universidad de Chile</p>
     <h1>Pausa y decide: ecuaciones diferenciales</h1>
-    <p class="sub">Diez preguntas sobre EDO separables y modelos (crecimiento exponencial y logístico, enfriamiento de Newton y decaimiento radiactivo), para practicar la <em>decisión</em> antes de calcular. Elige una alternativa y lee la explicación; si no acertaste, vuelve a intentarlo: puedes cambiar de alternativa las veces que quieras. Nada de esto se envía ni se califica.</p>
+    <p class="sub">Trece preguntas sobre EDO separables (cómo separar y despejar) y modelos (crecimiento exponencial y logístico, enfriamiento de Newton y decaimiento radiactivo), para practicar la <em>decisión</em> antes de calcular. Elige una alternativa y lee la explicación; si no acertaste, vuelve a intentarlo: puedes cambiar de alternativa las veces que quieras. Nada de esto se envía ni se califica.</p>
   </header>
   <div id="quiz" class="wrap" style="gap:14px"></div>
   <button class="btn" id="reset" type="button">Empezar de nuevo</button>
@@ -82,15 +82,33 @@ const R = String.raw;
 const Q = [
   { q: R`¿Cuál de estas EDO es separable?`,
     o: [
-      [R`\(\dfrac{dy}{dx} = x + y\)`, false, R`Una suma no se puede escribir como \(g(y)\cdot h(x)\): no hay forma de dejar todo lo de \(y\) a un lado y todo lo de \(x\) al otro.`],
       [R`\(\dfrac{dy}{dx} = x\cdot y^2\)`, true, R`Es de la forma \(\dfrac{dy}{dx} = g(y)\cdot h(x)\) con \(g(y) = y^2\) y \(h(x) = x\). Para \(y\neq 0\): \(\displaystyle\int \dfrac{1}{y^2}\,dy = \int x\,dx\).`],
+      [R`\(\dfrac{dy}{dx} = x + y\)`, false, R`Una suma no se puede escribir como \(g(y)\cdot h(x)\): no hay forma de dejar todo lo de \(y\) a un lado y todo lo de \(x\) al otro.`],
       [R`\(\dfrac{dy}{dx} = \sen(x\cdot y)\)`, false, R`\(\sen(x\cdot y)\) no se separa en un factor que dependa solo de \(y\) por otro que dependa solo de \(x\).`],
     ] },
   { q: R`Para resolver \(\dfrac{dy}{dx} = 2y\) se divide por \(y\) y se integra: \(\displaystyle\int \dfrac{1}{y}\,dy = \int 2\,dx\). ¿Qué pasa con \(y = 0\)?`,
     o: [
       [R`No es solución, porque se dividió por \(y\)`, false, R`Dividir por \(y\) solo exige \(y\neq 0\) en ese paso. Hay que revisar \(y = 0\) aparte: \(y' = 0\) y \(2y = 0\), así que sí cumple la EDO.`],
-      [R`Es una solución constante que se revisa aparte`, true, R`Como \(g(y) = 2y\) se anula en \(y = 0\), la función constante \(y = 0\) cumple \(0 = 0\). Las soluciones son \(y = M\cdot e^{2x}\), \(M\in\R\), y \(M = 0\) recupera \(y = 0\).`],
       [R`Da lo mismo: no cambia el conjunto de soluciones`, false, R`Sí puede cambiarlo: si no se revisa, se pierde la solución \(y = 0\). En otras EDO, como \(\dfrac{dy}{dx} = x^3\cdot\cos^2(y)\), las soluciones constantes \(y = \dfrac{\pi}{2}+k\pi\) no salen de la fórmula general.`],
+      [R`Es una solución constante que se revisa aparte`, true, R`Como \(g(y) = 2y\) se anula en \(y = 0\), la función constante \(y = 0\) cumple \(0 = 0\). Las soluciones son \(y = M\cdot e^{2x}\), \(M\in\R\), y \(M = 0\) recupera \(y = 0\).`],
+    ] },
+  { q: R`Para \(y>0\), al separar \(\dfrac{dy}{dx} = x\cdot\sqrt{y}\) se obtiene:`,
+    o: [
+      [R`\(\displaystyle\int \sqrt{y}\,dy = \int x\,dx\)`, false, R`Al pasar \(\sqrt{y}\) al lado de \(dy\) se divide, no se multiplica: queda \(\dfrac{1}{\sqrt{y}}\).`],
+      [R`\(\displaystyle\int \dfrac{1}{\sqrt{y}}\,dy = \int x\,dx\)`, true, R`Se divide por \(\sqrt{y}\neq 0\): \(2\sqrt{y} = \dfrac{x^2}{2} + C\), y despejando \(y = \dfrac{\left(x^2+2C\right)^2}{16}\).`],
+      [R`\(\displaystyle\int dy = \int x\cdot\sqrt{y}\,dx\)`, false, R`Así \(y\) queda dentro de la integral en \(x\), y no se puede integrar. La idea es dejar todo lo de \(y\) junto a \(dy\) y todo lo de \(x\) junto a \(dx\).`],
+    ] },
+  { q: R`En \(\dfrac{dy}{dx} = x\cdot e^{y}\) se separa \(\displaystyle\int e^{-y}\,dy = \int x\,dx\) y se llega a \(e^{-y} = C - \dfrac{x^2}{2}\). Despejando \(y\):`,
+    o: [
+      [R`\(y = -\ln\left(C - \dfrac{x^2}{2}\right)\)`, true, R`Aplicando \(\ln\): \(-y = \ln\left(C - \dfrac{x^2}{2}\right)\), donde \(C - \dfrac{x^2}{2} > 0\). (De \(-e^{-y} = \dfrac{x^2}{2} + C_1\) se pasa a la forma del enunciado con \(C = -C_1\).)`],
+      [R`\(y = \ln\left(C - \dfrac{x^2}{2}\right)\)`, false, R`Falta el signo: \(\ln\left(e^{-y}\right) = -y\), no \(y\). Deriva tu resultado y compara con \(x\cdot e^{y}\).`],
+      [R`\(y = -\left(C - \dfrac{x^2}{2}\right)\)`, false, R`Para sacar \(y\) del exponente se aplica \(\ln\) a ambos lados; la exponencial no se puede simplemente quitar.`],
+    ] },
+  { q: R`En \(\dfrac{dy}{dx} = x^3\cdot y\), separando se llega a \(\ln\left(\vert y\vert\right) = \dfrac{x^4}{4} + C\). ¿Cómo se escriben todas las soluciones?`,
+    o: [
+      [R`\(y = e^{x^4/4} + C\), \(C\in\R\)`, false, R`La constante no queda sumando: \(e^{x^4/4 + C} = e^{C}\cdot e^{x^4/4}\), que multiplica. Deriva: \(\left(e^{x^4/4} + C\right)' = x^3\cdot e^{x^4/4}\), que no es \(x^3\cdot\left(e^{x^4/4} + C\right)\).`],
+      [R`\(y = e^{x^4/4 + C}\), \(C\in\R\)`, false, R`Son solo las soluciones positivas: al quitar el valor absoluto faltan las negativas, y también falta \(y = 0\).`],
+      [R`\(y = M\cdot e^{x^4/4}\), \(M\in\R\)`, true, R`\(\vert y\vert = e^{C}\cdot e^{x^4/4}\), así que \(y = \pm e^{C}\cdot e^{x^4/4}\). Con \(M = \pm e^{C}\) salen todas las no nulas, y \(M = 0\) da la solución constante \(y = 0\).`],
     ] },
   { q: R`¿Cuál es la solución de \(\dfrac{dP}{dt} = \alpha\cdot P\)?`,
     o: [
@@ -101,31 +119,31 @@ const Q = [
   { q: R`Una población que crece de modo exponencial se triplica cada hora. Con \(t\) en horas, la tasa \(\alpha\) de \(\dfrac{dP}{dt} = \alpha\cdot P\) es:`,
     o: [
       [R`\(\alpha = 3\)`, false, R`Con \(\alpha = 3\), en una hora la población se multiplica por \(e^{3}\approx 20\), no por \(3\).`],
-      [R`\(\alpha = \ln(3)\)`, true, R`\(P(1) = P(0)\cdot e^{\alpha} = 3\cdot P(0)\), así que \(e^{\alpha} = 3\) y \(\alpha = \ln(3)\approx 1{,}0986\) por hora.`],
       [R`\(\alpha = \dfrac{1}{3}\)`, false, R`Con \(\alpha = \dfrac{1}{3}\), en una hora se multiplica por \(e^{1/3}\approx 1{,}40\). Plantea \(P(1) = 3\cdot P(0)\) y despeja \(\alpha\).`],
+      [R`\(\alpha = \ln(3)\)`, true, R`\(P(1) = P(0)\cdot e^{\alpha} = 3\cdot P(0)\), así que \(e^{\alpha} = 3\) y \(\alpha = \ln(3)\approx 1{,}0986\) por hora.`],
     ] },
   { q: R`En el modelo logístico \(\dfrac{dP}{dt} = \alpha\cdot P\cdot\left(1-\dfrac{P}{K}\right)\), con \(\alpha>0\), si \(0\lt P\lt K\), la población:`,
     o: [
-      [R`decrece`, false, R`Con \(0\lt P\lt K\) los tres factores \(\alpha\), \(P\) y \(1-\dfrac{P}{K}\) son positivos, así que \(\dfrac{dP}{dt}>0\).`],
       [R`crece`, true, R`\(\dfrac{dP}{dt}>0\) porque los tres factores son positivos. Crece cada vez más lento al acercarse a \(K\), porque \(1-\dfrac{P}{K}\) se acerca a \(0\).`],
+      [R`decrece`, false, R`Con \(0\lt P\lt K\) los tres factores \(\alpha\), \(P\) y \(1-\dfrac{P}{K}\) son positivos, así que \(\dfrac{dP}{dt}>0\).`],
       [R`se mantiene constante`, false, R`Solo es constante si \(\dfrac{dP}{dt} = 0\), es decir, si \(P = 0\) o \(P = K\).`],
     ] },
   { q: R`¿Cuáles son las soluciones constantes de \(\dfrac{dP}{dt} = \alpha\cdot P\cdot\left(1-\dfrac{P}{K}\right)\)?`,
     o: [
-      [R`\(P = 0\) y \(P = K\)`, true, R`Una constante tiene derivada \(0\), y \(\alpha\cdot P\cdot\left(1-\dfrac{P}{K}\right) = 0\) exactamente cuando \(P = 0\) o \(P = K\). Si \(P(0)>0\), la población tiende a \(K\), la capacidad de carga.`],
       [R`Solo \(P = K\)`, false, R`También \(P = 0\) anula el lado derecho: sin individuos, la población no cambia.`],
+      [R`\(P = 0\) y \(P = K\)`, true, R`Una constante tiene derivada \(0\), y \(\alpha\cdot P\cdot\left(1-\dfrac{P}{K}\right) = 0\) exactamente cuando \(P = 0\) o \(P = K\). Si \(P(0)>0\), la población tiende a \(K\), la capacidad de carga.`],
       [R`\(P = \dfrac{K}{2}\)`, false, R`En \(P = \dfrac{K}{2}\) la población crece más rápido (ahí está el punto de inflexión), pero \(\dfrac{dP}{dt}\neq 0\).`],
     ] },
   { q: R`Un objeto a temperatura \(T_0\) se deja en un ambiente a \(T_a\) constante, con \(\dfrac{dT}{dt} = -k\cdot\left(T-T_a\right)\) y \(k>0\). ¿Cuál es la solución?`,
     o: [
       [R`\(T(t) = T_0\cdot e^{-kt}\)`, false, R`Esa tiende a \(0\) cuando \(t\to\infty\), pero el objeto debería acercarse a la temperatura ambiente \(T_a\). Lo que decae exponencialmente es la diferencia \(T-T_a\).`],
-      [R`\(T(t) = T_a + \left(T_0-T_a\right)\cdot e^{-kt}\)`, true, R`Con \(u = T-T_a\) la EDO es \(\dfrac{du}{dt} = -k\cdot u\), así que \(T-T_a = (T_0-T_a)\cdot e^{-kt}\). En \(t = 0\) vale \(T_0\) y tiende a \(T_a\).`],
       [R`\(T(t) = T_a\cdot e^{-kt}\)`, false, R`En \(t = 0\) daría \(T_a\), no \(T_0\), y además tendería a \(0\). Verifica siempre la condición inicial.`],
+      [R`\(T(t) = T_a + \left(T_0-T_a\right)\cdot e^{-kt}\)`, true, R`Con \(u = T-T_a\) la EDO es \(\dfrac{du}{dt} = -k\cdot u\), así que \(T-T_a = (T_0-T_a)\cdot e^{-kt}\). En \(t = 0\) vale \(T_0\) y tiende a \(T_a\).`],
     ] },
   { q: R`Agua a \(100^{\circ}\)C se enfría en una habitación a \(25^{\circ}\)C según la ley de Newton. ¿Llega el agua a \(25^{\circ}\)C?`,
     o: [
-      [R`Sí, en algún tiempo finito`, false, R`\(T(t)-25 = 75\cdot e^{-kt}\), y una exponencial nunca vale \(0\). Para cada temperatura mayor que \(25^{\circ}\)C, como \(26^{\circ}\)C, sí hay un tiempo en que se alcanza.`],
       [R`No: se acerca a \(25^{\circ}\)C sin alcanzarla`, true, R`\(T(t) = 25 + 75\cdot e^{-kt}>25\) para todo \(t\), y \(\displaystyle\lim_{t\to\infty} T(t) = 25\). En la práctica, la diferencia se vuelve imposible de medir.`],
+      [R`Sí, en algún tiempo finito`, false, R`\(T(t)-25 = 75\cdot e^{-kt}\), y una exponencial nunca vale \(0\). Para cada temperatura mayor que \(25^{\circ}\)C, como \(26^{\circ}\)C, sí hay un tiempo en que se alcanza.`],
       [R`Depende del valor de \(k\)`, false, R`\(k\) cambia la rapidez del enfriamiento, pero para cualquier \(k>0\) se cumple \(75\cdot e^{-kt}>0\).`],
     ] },
   { q: R`Un isótopo tiene vida media de \(1{.}600\) años. En \(\dfrac{dN}{dt} = -k\cdot N\), con \(t\) en años, ¿cuánto vale \(k\)?`,
@@ -136,8 +154,8 @@ const Q = [
     ] },
   { q: R`De una muestra de \(50\) g de ese isótopo (vida media de \(1{.}600\) años), ¿cuánto queda después de \(3{.}200\) años?`,
     o: [
-      [R`\(25\) g`, false, R`\(25\) g es lo que queda tras una vida media (\(1{.}600\) años). En \(3{.}200\) años pasan dos.`],
       [R`\(12{,}5\) g`, true, R`Son dos vidas medias: \(50\to 25\to 12{,}5\). Con la fórmula: \(50\cdot e^{-k\cdot 3200} = 50\cdot\left(e^{-k\cdot 1600}\right)^2 = 50\cdot\dfrac{1}{4} = 12{,}5\).`],
+      [R`\(25\) g`, false, R`\(25\) g es lo que queda tras una vida media (\(1{.}600\) años). En \(3{.}200\) años pasan dos.`],
       [R`\(0\) g`, false, R`La cantidad decae exponencialmente y nunca llega a \(0\): cada \(1{.}600\) años se reduce a la mitad.`],
     ] },
 ];
