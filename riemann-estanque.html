@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualización Completa: Problema del Estanque</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .descripcion {
+            background: #e6f7ff;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #1890ff;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        
+        .controles-principales {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        button.activo {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        button.inactivo {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+        
+        button.activo:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        button.control {
+            background: #10b981;
+            color: white;
+        }
+
+        button.control:hover {
+            background: #059669;
+        }
+
+        button.control:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .layout-principal {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .layout-inferior {
+            margin-bottom: 15px;
+        }
+
+        .info-estanque-pequena {
+            font-size: 14px;
+            margin-top: 10px;
+            line-height: 1.6;
+        }
+        
+        .seccion {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+        }
+
+        .seccion h3 {
+            margin-top: 0;
+            color: #4a5568;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        canvas {
+            width: 100%;
+            background: white;
+            border-radius: 5px;
+            display: block;
+        }
+
+        #graficaCanvas {
+            height: 300px;
+        }
+
+        #estanqueCanvas {
+            height: 300px;
+        }
+        
+        .panel-info {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        
+        .formula {
+            background: #f0f9ff;
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #3b82f6;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+        
+        .resultado {
+            background: #10b981;
+            color: white;
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .paso {
+            background: #fef3c7;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 8px 0;
+            border-left: 4px solid #f59e0b;
+            font-size: 14px;
+        }
+        
+        .slider-container {
+            margin: 20px 0;
+        }
+        
+        .slider-container label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #4a5568;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #e5e7eb;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+        
+        .valor-slider {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #3b82f6;
+            margin: 10px 0;
+        }
+        
+        .explicacion {
+            background: #fef3c7;
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #f59e0b;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .tiempo-info {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #4a5568;
+            margin: 10px 0;
+            padding: 8px;
+            background: #f0f9ff;
+            border-radius: 5px;
+        }
+
+        .controles-animacion {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .velocidad-control {
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .velocidad-control label {
+            display: inline-block;
+            margin-right: 10px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .velocidad-control input {
+            width: 200px;
+        }
+        
+        @media (max-width: 1200px) {
+            .layout-principal {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Visualización Completa: Problema del Estanque</h1>
+        
+        <div class="descripcion">
+            <strong>Problema:</strong> Sea <em>g : [0, 12] → ℝ</em> la cantidad de agua en un estanque en cada instante <em>t ∈ [0, 12]</em> en horas. 
+            Se sabe que <em>g(0) = 129 litros</em> y que el agua sale a un ritmo de <em>t/3</em> litros por hora.
+            <strong>¿Cuánta agua queda luego de 7 horas?</strong>
+        </div>
+        
+        <div class="controles-principales">
+            <button id="btnMala" class="activo">Aproximación Mala</button>
+            <button id="btnMejorada" class="inactivo">Aproximación Mejorada</button>
+            <button id="btnRiemann" class="inactivo">Sumas de Riemann</button>
+            <button id="btnExacta" class="inactivo">Solución Exacta</button>
+            <button id="btnComparacion" class="inactivo">Comparación</button>
+        </div>
+
+        <div class="controles-animacion">
+            <button id="btnIniciar" class="control">▶ Iniciar</button>
+            <button id="btnPausar" class="control">⏸ Pausar</button>
+            <button id="btnReiniciar" class="control">↻ Reiniciar</button>
+        </div>
+
+        <div class="velocidad-control">
+            <label>Velocidad de animación:</label>
+            <input type="range" id="velocidadSlider" min="1" max="100" value="1">
+            <span id="velocidadValor">0.1x</span>
+        </div>
+
+        <div class="tiempo-info" id="tiempoInfo">Tiempo: 0.00 horas</div>
+        
+        <div class="layout-principal">
+            <div class="seccion">
+                <h3>Visualización Gráfica: Tasa de Salida vs Tiempo</h3>
+                <canvas id="graficaCanvas"></canvas>
+            </div>
+            
+            <div class="seccion">
+                <h3 id="tituloEstanque">Estanque</h3>
+                <canvas id="estanqueCanvas"></canvas>
+                <div class="info-estanque-pequena" id="infoEstanque"></div>
+            </div>
+        </div>
+
+        <div class="layout-inferior">
+            <div class="seccion">
+                <h3>Explicación Matemática</h3>
+                <div id="panelExplicacion"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Referencias a elementos
+        const graficaCanvas = document.getElementById('graficaCanvas');
+        const ctxGrafica = graficaCanvas.getContext('2d');
+        const estanqueCanvas = document.getElementById('estanqueCanvas');
+        const ctxEstanque = estanqueCanvas.getContext('2d');
+        
+        // Estado de la aplicación
+        let modoActual = 'mala';
+        let subdivisiones = 7;
+        let animacionActiva = false;
+        let tiempoActual = 0;
+        let velocidadAnimacion = 0.1; // 0.1x = muy lento (10 segundos por hora = 70 segundos total)
+        let lastTime = 0;
+        let animationFrame = null;
+
+        // Constantes
+        const VOLUMEN_INICIAL = 129;
+        const TIEMPO_TOTAL = 7;
+        
+        // Configuración de la gráfica
+        const config = {
+            margenX: 50,
+            margenY: 30,
+            tMax: TIEMPO_TOTAL,
+            fMax: 3
+        };
+
+        // Colores por modo
+        const colores = {
+            mala: { fill: 'rgba(239, 68, 68, 0.5)', stroke: '#ef4444' },
+            mejorada: { fill: 'rgba(245, 158, 11, 0.5)', stroke: '#f59e0b' },
+            riemann: { fill: 'rgba(59, 130, 246, 0.5)', stroke: '#3b82f6' },
+            exacta: { fill: 'rgba(16, 185, 129, 0.4)', stroke: '#10b981' }
+        };
+        
+        // Ajustar canvas
+        function ajustarCanvas() {
+            const parent1 = graficaCanvas.parentElement;
+            const parent2 = estanqueCanvas.parentElement;
+            
+            graficaCanvas.width = parent1.clientWidth - 24;
+            graficaCanvas.height = 300;
+            
+            estanqueCanvas.width = parent2.clientWidth - 24;
+            estanqueCanvas.height = 300;
+            
+            if (typeof dibujar === 'function') {
+                dibujar();
+            }
+        }
+        
+        window.addEventListener('load', () => {
+            ajustarCanvas();
+        });
+        window.addEventListener('resize', ajustarCanvas);
+        
+        // Función f(t) = t/3
+        function f(t) {
+            return t / 3;
+        }
+        
+        // Funciones de pérdida de agua
+        function aguaPerdidaMala(t) {
+            return t * (TIEMPO_TOTAL / 3);
+        }
+        
+        function aguaPerdidaMejorada(t) {
+            let suma = 0;
+            let horaActual = Math.floor(t);
+            for (let i = 1; i <= horaActual; i++) {
+                suma += i / 3;
+            }
+            return suma;
+        }
+        
+        function aguaPerdidaRiemann(t) {
+            const dt = TIEMPO_TOTAL / subdivisiones;
+            let suma = 0;
+            const numRects = Math.floor(t / dt);
+            for (let i = 0; i < numRects; i++) {
+                const ti = i * dt;
+                suma += f(ti + dt) * dt;
+            }
+            return suma;
+        }
+        
+        function aguaPerdidaExacta(t) {
+            return (t * t) / 6;
+        }
+        
+        // Conversión de coordenadas para gráfica
+        function toCanvasX(t) {
+            const ancho = graficaCanvas.width - 2 * config.margenX;
+            return config.margenX + (t / config.tMax) * ancho;
+        }
+        
+        function toCanvasY(y) {
+            const alto = graficaCanvas.height - 2 * config.margenY;
+            return graficaCanvas.height - config.margenY - (y / config.fMax) * alto;
+        }
+        
+        // Dibujar ejes
+        function dibujarEjes() {
+            ctxGrafica.strokeStyle = '#333';
+            ctxGrafica.lineWidth = 2;
+            
+            // Eje X
+            ctxGrafica.beginPath();
+            ctxGrafica.moveTo(config.margenX, graficaCanvas.height - config.margenY);
+            ctxGrafica.lineTo(graficaCanvas.width - config.margenX, graficaCanvas.height - config.margenY);
+            ctxGrafica.stroke();
+            
+            // Eje Y
+            ctxGrafica.beginPath();
+            ctxGrafica.moveTo(config.margenX, config.margenY);
+            ctxGrafica.lineTo(config.margenX, graficaCanvas.height - config.margenY);
+            ctxGrafica.stroke();
+            
+            // Etiquetas
+            ctxGrafica.fillStyle = '#333';
+            ctxGrafica.font = '12px Arial';
+            ctxGrafica.textAlign = 'center';
+            
+            // Eje X
+            for (let t = 0; t <= config.tMax; t++) {
+                const x = toCanvasX(t);
+                const y = graficaCanvas.height - config.margenY;
+                
+                ctxGrafica.beginPath();
+                ctxGrafica.moveTo(x, y);
+                ctxGrafica.lineTo(x, y + 5);
+                ctxGrafica.stroke();
+                
+                ctxGrafica.fillText(t, x, y + 18);
+            }
+            ctxGrafica.fillText('t (horas)', graficaCanvas.width / 2, graficaCanvas.height - 3);
+            
+            // Eje Y
+            ctxGrafica.textAlign = 'right';
+            for (let y = 0; y <= config.fMax; y += 0.5) {
+                const cy = toCanvasY(y);
+                const cx = config.margenX;
+                
+                ctxGrafica.beginPath();
+                ctxGrafica.moveTo(cx - 5, cy);
+                ctxGrafica.lineTo(cx, cy);
+                ctxGrafica.stroke();
+                
+                ctxGrafica.fillText(y.toFixed(1), cx - 10, cy + 5);
+            }
+            
+            ctxGrafica.save();
+            ctxGrafica.translate(15, graficaCanvas.height / 2);
+            ctxGrafica.rotate(-Math.PI / 2);
+            ctxGrafica.textAlign = 'center';
+            ctxGrafica.fillText('f(t) = t/3 (L/h)', 0, 0);
+            ctxGrafica.restore();
+        }
+        
+        // Dibujar la curva f(t)
+        function dibujarCurva() {
+            ctxGrafica.strokeStyle = '#10b981';
+            ctxGrafica.lineWidth = 3;
+            ctxGrafica.beginPath();
+            
+            for (let t = 0; t <= config.tMax; t += 0.05) {
+                const x = toCanvasX(t);
+                const y = toCanvasY(f(t));
+                
+                if (t === 0) ctxGrafica.moveTo(x, y);
+                else ctxGrafica.lineTo(x, y);
+            }
+            ctxGrafica.stroke();
+        }
+        
+        // Dibujar aproximación según el modo
+        function dibujarAproximacion(t) {
+            const color = colores[modoActual];
+            
+            switch(modoActual) {
+                case 'mala':
+                    dibujarAproximacionMala(t, color);
+                    break;
+                case 'mejorada':
+                    dibujarAproximacionMejorada(t, color);
+                    break;
+                case 'riemann':
+                    dibujarAproximacionRiemann(t, color);
+                    break;
+                case 'exacta':
+                    dibujarAproximacionExacta(t, color);
+                    break;
+                case 'comparacion':
+                    dibujarComparacion(t);
+                    break;
+            }
+        }
+        
+        function dibujarAproximacionMala(t, color) {
+            if (t === 0) return;
+            
+            const altura = f(TIEMPO_TOTAL);
+            const x0 = toCanvasX(0);
+            const x1 = toCanvasX(t);
+            const y0 = toCanvasY(altura);
+            const y1 = toCanvasY(0);
+            
+            ctxGrafica.fillStyle = color.fill;
+            ctxGrafica.fillRect(x0, y0, x1 - x0, y1 - y0);
+            
+            ctxGrafica.strokeStyle = color.stroke;
+            ctxGrafica.lineWidth = 2;
+            ctxGrafica.strokeRect(x0, y0, x1 - x0, y1 - y0);
+            
+            // Línea horizontal
+            ctxGrafica.setLineDash([5, 5]);
+            ctxGrafica.beginPath();
+            ctxGrafica.moveTo(x0, y0);
+            ctxGrafica.lineTo(toCanvasX(config.tMax), y0);
+            ctxGrafica.stroke();
+            ctxGrafica.setLineDash([]);
+        }
+        
+        function dibujarAproximacionMejorada(t, color) {
+            const horaActual = Math.floor(t);
+            
+            for (let i = 1; i <= horaActual; i++) {
+                const altura = f(i);
+                const x0 = toCanvasX(i - 1);
+                const x1 = toCanvasX(i);
+                const y0 = toCanvasY(altura);
+                const y1 = toCanvasY(0);
+                
+                ctxGrafica.fillStyle = color.fill;
+                ctxGrafica.fillRect(x0, y0, x1 - x0, y1 - y0);
+                
+                ctxGrafica.strokeStyle = color.stroke;
+                ctxGrafica.lineWidth = 2;
+                ctxGrafica.strokeRect(x0, y0, x1 - x0, y1 - y0);
+            }
+        }
+        
+        function dibujarAproximacionRiemann(t, color) {
+            const dt = TIEMPO_TOTAL / subdivisiones;
+            const numRects = Math.floor(t / dt);
+            
+            for (let i = 0; i < numRects; i++) {
+                const ti = i * dt;
+                const altura = f(ti + dt);
+                const x0 = toCanvasX(ti);
+                const x1 = toCanvasX(ti + dt);
+                const y0 = toCanvasY(altura);
+                const y1 = toCanvasY(0);
+                
+                ctxGrafica.fillStyle = color.fill;
+                ctxGrafica.fillRect(x0, y0, x1 - x0, y1 - y0);
+                
+                ctxGrafica.strokeStyle = color.stroke;
+                ctxGrafica.lineWidth = 1;
+                ctxGrafica.strokeRect(x0, y0, x1 - x0, y1 - y0);
+            }
+        }
+        
+        function dibujarAproximacionExacta(t, color) {
+            if (t === 0) return;
+            
+            ctxGrafica.fillStyle = color.fill;
+            ctxGrafica.beginPath();
+            ctxGrafica.moveTo(toCanvasX(0), toCanvasY(0));
+            
+            for (let ti = 0; ti <= t; ti += 0.05) {
+                const x = toCanvasX(ti);
+                const y = toCanvasY(f(ti));
+                ctxGrafica.lineTo(x, y);
+            }
+            
+            ctxGrafica.lineTo(toCanvasX(t), toCanvasY(0));
+            ctxGrafica.closePath();
+            ctxGrafica.fill();
+        }
+        
+        function dibujarComparacion(t) {
+            if (t === 0) return;
+            
+            // 1. Dibujar solución exacta (verde, más transparente)
+            ctxGrafica.fillStyle = 'rgba(16, 185, 129, 0.2)';
+            ctxGrafica.beginPath();
+            ctxGrafica.moveTo(toCanvasX(0), toCanvasY(0));
+            
+            for (let ti = 0; ti <= t; ti += 0.05) {
+                const x = toCanvasX(ti);
+                const y = toCanvasY(f(ti));
+                ctxGrafica.lineTo(x, y);
+            }
+            
+            ctxGrafica.lineTo(toCanvasX(t), toCanvasY(0));
+            ctxGrafica.closePath();
+            ctxGrafica.fill();
+            
+            // Borde de la exacta
+            ctxGrafica.strokeStyle = '#10b981';
+            ctxGrafica.lineWidth = 2;
+            ctxGrafica.beginPath();
+            ctxGrafica.moveTo(toCanvasX(0), toCanvasY(0));
+            for (let ti = 0; ti <= t; ti += 0.05) {
+                const x = toCanvasX(ti);
+                const y = toCanvasY(f(ti));
+                ctxGrafica.lineTo(x, y);
+            }
+            ctxGrafica.stroke();
+            
+            // 2. Dibujar aproximación mejorada (naranja, barras)
+            const horaActual = Math.floor(t);
+            for (let i = 1; i <= horaActual; i++) {
+                const altura = f(i);
+                const x0 = toCanvasX(i - 1);
+                const x1 = toCanvasX(i);
+                const y0 = toCanvasY(altura);
+                const y1 = toCanvasY(0);
+                
+                ctxGrafica.fillStyle = 'rgba(245, 158, 11, 0.3)';
+                ctxGrafica.fillRect(x0, y0, x1 - x0, y1 - y0);
+                
+                ctxGrafica.strokeStyle = '#f59e0b';
+                ctxGrafica.lineWidth = 2;
+                ctxGrafica.strokeRect(x0, y0, x1 - x0, y1 - y0);
+            }
+            
+            // 3. Dibujar aproximación mala (rojo, rectángulo)
+            const altura = f(TIEMPO_TOTAL);
+            const x0 = toCanvasX(0);
+            const x1 = toCanvasX(t);
+            const y0 = toCanvasY(altura);
+            const y1 = toCanvasY(0);
+            
+            ctxGrafica.fillStyle = 'rgba(239, 68, 68, 0.25)';
+            ctxGrafica.fillRect(x0, y0, x1 - x0, y1 - y0);
+            
+            ctxGrafica.strokeStyle = '#ef4444';
+            ctxGrafica.lineWidth = 2;
+            ctxGrafica.strokeRect(x0, y0, x1 - x0, y1 - y0);
+            
+            // Línea horizontal de la mala
+            ctxGrafica.setLineDash([5, 5]);
+            ctxGrafica.beginPath();
+            ctxGrafica.moveTo(x0, y0);
+            ctxGrafica.lineTo(toCanvasX(config.tMax), y0);
+            ctxGrafica.stroke();
+            ctxGrafica.setLineDash([]);
+            
+            // Agregar leyenda
+            if (t >= TIEMPO_TOTAL) {
+                const leyendaX = graficaCanvas.width - 180;
+                const leyendaY = 60;
+                
+                // Fondo para la leyenda
+                ctxGrafica.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctxGrafica.fillRect(leyendaX - 10, leyendaY - 10, 160, 90);
+                ctxGrafica.strokeStyle = '#333';
+                ctxGrafica.lineWidth = 1;
+                ctxGrafica.strokeRect(leyendaX - 10, leyendaY - 10, 160, 90);
+                
+                ctxGrafica.font = '12px Arial';
+                ctxGrafica.textAlign = 'left';
+                
+                // Mala
+                ctxGrafica.fillStyle = '#ef4444';
+                ctxGrafica.fillRect(leyendaX, leyendaY, 20, 15);
+                ctxGrafica.fillStyle = '#333';
+                ctxGrafica.fillText('Mala: ' + (338/3).toFixed(2) + ' L', leyendaX + 25, leyendaY + 12);
+                
+                // Mejorada
+                ctxGrafica.fillStyle = '#f59e0b';
+                ctxGrafica.fillRect(leyendaX, leyendaY + 25, 20, 15);
+                ctxGrafica.fillStyle = '#333';
+                ctxGrafica.fillText('Mejorada: ' + (359/3).toFixed(2) + ' L', leyendaX + 25, leyendaY + 37);
+                
+                // Exacta
+                ctxGrafica.fillStyle = '#10b981';
+                ctxGrafica.fillRect(leyendaX, leyendaY + 50, 20, 15);
+                ctxGrafica.fillStyle = '#333';
+                ctxGrafica.fillText('Exacta: ' + (725/6).toFixed(2) + ' L', leyendaX + 25, leyendaY + 62);
+            }
+        }
+        
+        // Línea vertical en t actual
+        function dibujarLineaTiempo(t) {
+            if (t === 0) return;
+            
+            ctxGrafica.strokeStyle = '#333';
+            ctxGrafica.lineWidth = 2;
+            ctxGrafica.setLineDash([5, 5]);
+            ctxGrafica.beginPath();
+            ctxGrafica.moveTo(toCanvasX(t), config.margenY);
+            ctxGrafica.lineTo(toCanvasX(t), graficaCanvas.height - config.margenY);
+            ctxGrafica.stroke();
+            ctxGrafica.setLineDash([]);
+        }
+        
+        // Dibujar estanque
+        function dibujarEstanque(volumen) {
+            const width = estanqueCanvas.width;
+            const height = estanqueCanvas.height;
+            const margen = 30;
+            
+            ctxEstanque.clearRect(0, 0, width, height);
+            
+            if (modoActual === 'comparacion') {
+                // Dibujar tres estanques pequeños lado a lado
+                dibujarEstanquePequeno(volumen.mala, 0, width, height, colores.mala.stroke, 'Mala');
+                dibujarEstanquePequeno(volumen.mejorada, 1, width, height, colores.mejorada.stroke, 'Mej.');
+                dibujarEstanquePequeno(volumen.exacta, 2, width, height, colores.exacta.stroke, 'Exacta');
+            } else {
+                // Dimensiones del estanque
+                const estanqueX = margen;
+                const estanqueY = margen;
+                const estanqueWidth = width - 2 * margen;
+                const estanqueHeight = height - 2 * margen;
+                
+                // Dibujar contorno
+                ctxEstanque.strokeStyle = '#333';
+                ctxEstanque.lineWidth = 3;
+                ctxEstanque.strokeRect(estanqueX, estanqueY, estanqueWidth, estanqueHeight);
+                
+                // Calcular nivel de agua
+                const porcentaje = volumen / VOLUMEN_INICIAL;
+                const alturaAgua = estanqueHeight * porcentaje;
+                const yAgua = estanqueY + estanqueHeight - alturaAgua;
+                
+                // Color según modo
+                const colorBase = colores[modoActual].stroke;
+                const colorMap = {
+                    '#ef4444': 'rgba(239, 68, 68, 0.7)',
+                    '#f59e0b': 'rgba(245, 158, 11, 0.7)',
+                    '#3b82f6': 'rgba(59, 130, 246, 0.7)',
+                    '#10b981': 'rgba(16, 185, 129, 0.7)'
+                };
+                const colorAgua = colorMap[colorBase];
+                
+                // Dibujar agua
+                const gradient = ctxEstanque.createLinearGradient(0, yAgua, 0, estanqueY + estanqueHeight);
+                gradient.addColorStop(0, colorAgua);
+                gradient.addColorStop(1, colorAgua.replace('0.7', '0.9'));
+                
+                ctxEstanque.fillStyle = gradient;
+                ctxEstanque.fillRect(estanqueX, yAgua, estanqueWidth, alturaAgua);
+                
+                // Líneas de nivel
+                ctxEstanque.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctxEstanque.lineWidth = 1;
+                for (let i = 1; i < 5; i++) {
+                    const y = estanqueY + (estanqueHeight * i / 5);
+                    ctxEstanque.beginPath();
+                    ctxEstanque.moveTo(estanqueX, y);
+                    ctxEstanque.lineTo(estanqueX + estanqueWidth, y);
+                    ctxEstanque.stroke();
+                }
+                
+                // Etiqueta de volumen
+                ctxEstanque.fillStyle = '#333';
+                ctxEstanque.font = 'bold 18px Arial';
+                ctxEstanque.textAlign = 'center';
+                ctxEstanque.fillText(`${volumen.toFixed(2)} L`, width / 2, height - 8);
+            }
+        }
+        
+        // Función auxiliar para dibujar estanques pequeños en comparación
+        function dibujarEstanquePequeno(volumen, indice, width, height, color, label) {
+            const margen = 15;
+            const numEstanques = 3;
+            const anchoEstanque = (width - margen * (numEstanques + 1)) / numEstanques;
+            const altoEstanque = height - 60; // espacio para etiquetas arriba y abajo
+            
+            const x = margen + (anchoEstanque + margen) * indice;
+            const y = 35;
+            
+            // Contorno
+            ctxEstanque.strokeStyle = color;
+            ctxEstanque.lineWidth = 2;
+            ctxEstanque.strokeRect(x, y, anchoEstanque, altoEstanque);
+            
+            // Nivel de agua
+            const porcentaje = volumen / VOLUMEN_INICIAL;
+            const alturaAgua = altoEstanque * porcentaje;
+            const yAgua = y + altoEstanque - alturaAgua;
+            
+            const colorMap = {
+                '#ef4444': 'rgba(239, 68, 68, 0.6)',
+                '#f59e0b': 'rgba(245, 158, 11, 0.6)',
+                '#10b981': 'rgba(16, 185, 129, 0.6)'
+            };
+            const colorAgua = colorMap[color];
+            
+            ctxEstanque.fillStyle = colorAgua;
+            ctxEstanque.fillRect(x, yAgua, anchoEstanque, alturaAgua);
+            
+            // Etiqueta arriba
+            ctxEstanque.fillStyle = color;
+            ctxEstanque.font = 'bold 13px Arial';
+            ctxEstanque.textAlign = 'center';
+            ctxEstanque.fillText(label, x + anchoEstanque / 2, y - 18);
+            
+            // Volumen abajo
+            ctxEstanque.fillStyle = '#333';
+            ctxEstanque.font = 'bold 14px Arial';
+            ctxEstanque.fillText(`${volumen.toFixed(1)} L`, x + anchoEstanque / 2, height - 8);
+        }
+        
+        // Actualizar información
+        function actualizarInformacion(t) {
+            let aguaPerdida, aguaRestante;
+            
+            if (modoActual === 'comparacion') {
+                // Calcular los tres valores
+                const perdidaMala = aguaPerdidaMala(t);
+                const perdidaMejorada = aguaPerdidaMejorada(t);
+                const perdidaExacta = aguaPerdidaExacta(t);
+                
+                // Actualizar tiempo
+                document.getElementById('tiempoInfo').textContent = `Tiempo: ${t.toFixed(2)} horas`;
+                
+                // Actualizar info del estanque con las tres aproximaciones
+                document.getElementById('infoEstanque').innerHTML = `
+                    <strong style="color: #ef4444;">Mala:</strong> ${(VOLUMEN_INICIAL - perdidaMala).toFixed(2)} L<br>
+                    <strong style="color: #f59e0b;">Mejorada:</strong> ${(VOLUMEN_INICIAL - perdidaMejorada).toFixed(2)} L<br>
+                    <strong style="color: #10b981;">Exacta:</strong> ${(VOLUMEN_INICIAL - perdidaExacta).toFixed(2)} L
+                `;
+                
+                // Actualizar explicación
+                actualizarExplicacionComparacion(t, perdidaMala, perdidaMejorada, perdidaExacta);
+                return;
+            }
+            
+            switch(modoActual) {
+                case 'mala':
+                    aguaPerdida = aguaPerdidaMala(t);
+                    break;
+                case 'mejorada':
+                    aguaPerdida = aguaPerdidaMejorada(t);
+                    break;
+                case 'riemann':
+                    aguaPerdida = aguaPerdidaRiemann(t);
+                    break;
+                case 'exacta':
+                    aguaPerdida = aguaPerdidaExacta(t);
+                    break;
+            }
+            
+            aguaRestante = VOLUMEN_INICIAL - aguaPerdida;
+            
+            // Actualizar tiempo
+            document.getElementById('tiempoInfo').textContent = `Tiempo: ${t.toFixed(2)} horas`;
+            
+            // Actualizar info del estanque
+            document.getElementById('infoEstanque').innerHTML = `
+                <strong>Inicial:</strong> ${VOLUMEN_INICIAL} L<br>
+                <strong>Perdida:</strong> ${aguaPerdida.toFixed(2)} L<br>
+                <strong>Restante:</strong> ${aguaRestante.toFixed(2)} L
+            `;
+            
+            // Actualizar explicación según modo
+            actualizarExplicacion(t, aguaPerdida, aguaRestante);
+        }
+        
+        function actualizarExplicacionComparacion(t, perdidaMala, perdidaMejorada, perdidaExacta) {
+            const restanteMala = VOLUMEN_INICIAL - perdidaMala;
+            const restanteMejorada = VOLUMEN_INICIAL - perdidaMejorada;
+            const restanteExacta = VOLUMEN_INICIAL - perdidaExacta;
+            
+            let html = `
+                <div class="explicacion">
+                    <strong>Comparación de las tres aproximaciones</strong><br>
+                    En esta visualización se muestran superpuestas las tres aproximaciones principales del problema.
+                </div>
+                
+                <div class="paso" style="border-left-color: #ef4444;">
+                    <strong style="color: #ef4444;">Aproximación Mala (rojo):</strong><br>
+                    Asume tasa constante = 7/3 L/h<br>
+                    Agua perdida: ${perdidaMala.toFixed(2)} L<br>
+                    Agua restante: ${restanteMala.toFixed(2)} L
+                </div>
+                
+                <div class="paso" style="border-left-color: #f59e0b;">
+                    <strong style="color: #f59e0b;">Aproximación Mejorada (naranja):</strong><br>
+                    Suma discreta por horas<br>
+                    Agua perdida: ${perdidaMejorada.toFixed(2)} L<br>
+                    Agua restante: ${restanteMejorada.toFixed(2)} L
+                </div>
+                
+                <div class="paso" style="border-left-color: #10b981;">
+                    <strong style="color: #10b981;">Solución Exacta (verde):</strong><br>
+                    Integral definida: ∫₀^${t.toFixed(1)} (t/3) dt<br>
+                    Agua perdida: ${perdidaExacta.toFixed(2)} L<br>
+                    Agua restante: ${restanteExacta.toFixed(2)} L
+                </div>
+            `;
+            
+            if (t >= TIEMPO_TOTAL) {
+                const errorMala = Math.abs(restanteMala - restanteExacta);
+                const errorMejorada = Math.abs(restanteMejorada - restanteExacta);
+                
+                html += `
+                    <div class="resultado">
+                        <strong>Resultados finales (t = 7h):</strong><br>
+                        Mala: ${(338/3).toFixed(2)} L (error: ${errorMala.toFixed(2)} L)<br>
+                        Mejorada: ${(359/3).toFixed(2)} L (error: ${errorMejorada.toFixed(2)} L)<br>
+                        Exacta: ${(725/6).toFixed(2)} L ✓
+                    </div>
+                `;
+            }
+            
+            html += `
+                <div class="explicacion">
+                    <strong>Observación:</strong> La aproximación mala sobrestima significativamente el agua perdida. 
+                    La aproximación mejorada es mucho mejor, pero aún sobrestima. Solo la integral da el valor exacto.
+                </div>
+            `;
+            
+            document.getElementById('panelExplicacion').innerHTML = html;
+        }
+        
+        function actualizarExplicacion(t, perdida, restante) {
+            let html = '';
+            
+            switch(modoActual) {
+                case 'mala':
+                    html = `
+                        <div class="explicacion">
+                            <strong>Aproximación Mala:</strong> Se asume que la tasa de salida es constante e igual al valor final f(7) = 7/3 ≈ 2.33 L/h
+                        </div>
+                        <div class="formula">
+                            Área del rectángulo:<br>
+                            A = base × altura<br>
+                            A = ${t.toFixed(2)} × (7/3)<br>
+                            A ≈ ${perdida.toFixed(2)} L
+                        </div>
+                        ${t >= TIEMPO_TOTAL ? `<div class="resultado">Resultado final: ${(338/3).toFixed(2)} L restantes</div>` : ''}
+                        <div class="explicacion">
+                            Esta aproximación <strong>sobrestima</strong> el agua perdida porque asume que la tasa máxima se mantiene durante todo el período.
+                        </div>
+                    `;
+                    break;
+                    
+                case 'mejorada':
+                    const horaActual = Math.floor(t);
+                    let pasosHTML = '';
+                    for (let i = 1; i <= horaActual; i++) {
+                        pasosHTML += `<div class="paso">Hora ${i}: f(${i}) = ${(i/3).toFixed(2)} L/h × 1h = ${(i/3).toFixed(2)} L</div>`;
+                    }
+                    html = `
+                        <div class="explicacion">
+                            <strong>Aproximación Mejorada:</strong> Se divide en intervalos de 1 hora y se usa el valor al final de cada intervalo.
+                        </div>
+                        ${pasosHTML}
+                        <div class="formula">
+                            Suma total = ${perdida.toFixed(2)} L
+                        </div>
+                        ${t >= TIEMPO_TOTAL ? `<div class="resultado">Resultado final: ${(359/3).toFixed(2)} L restantes</div>` : ''}
+                    `;
+                    break;
+                    
+                case 'riemann':
+                    const dt = TIEMPO_TOTAL / subdivisiones;
+                    html = `
+                        <div class="explicacion">
+                            <strong>Sumas de Riemann:</strong> Intervalo [0, 7] dividido en <strong>n = ${subdivisiones}</strong> subintervalos.
+                        </div>
+                        <div class="slider-container">
+                            <label>Número de subdivisiones:</label>
+                            <div class="valor-slider">n = ${subdivisiones}</div>
+                            <input type="range" id="sliderSubdiv" min="1" max="100" value="${subdivisiones}">
+                        </div>
+                        <div class="formula">
+                            Δt = ${(dt).toFixed(4)} horas<br>
+                            Suma de Riemann ≈ ${perdida.toFixed(4)} L
+                        </div>
+                        <div class="explicacion">
+                            Cuando n → ∞, la suma converge a la integral: ∫₀⁷ (t/3) dt = 49/6 ≈ 8.1667 L
+                        </div>
+                    `;
+                    break;
+                    
+                case 'exacta':
+                    html = `
+                        <div class="explicacion">
+                            <strong>Solución Exacta:</strong> Calculamos la integral definida.
+                        </div>
+                        <div class="formula">
+                            ∫₀^${t.toFixed(1)} (t/3) dt = [t²/6]₀^${t.toFixed(1)}<br>
+                            = ${t.toFixed(1)}²/6 - 0<br>
+                            = ${perdida.toFixed(4)} L
+                        </div>
+                        ${t >= TIEMPO_TOTAL ? `
+                            <div class="resultado">
+                                Resultado final exacto:<br>
+                                49/6 = ${(49/6).toFixed(4)} L perdidos<br>
+                                725/6 = ${(725/6).toFixed(4)} L restantes
+                            </div>
+                        ` : ''}
+                    `;
+                    break;
+            }
+            
+            document.getElementById('panelExplicacion').innerHTML = html;
+            
+            // Agregar listener al slider si está en modo Riemann
+            if (modoActual === 'riemann') {
+                const slider = document.getElementById('sliderSubdiv');
+                if (slider) {
+                    slider.addEventListener('input', (e) => {
+                        subdivisiones = parseInt(e.target.value);
+                        dibujar();
+                    });
+                }
+            }
+        }
+        
+        // Función principal de dibujo
+        function dibujar() {
+            // Limpiar gráfica
+            ctxGrafica.clearRect(0, 0, graficaCanvas.width, graficaCanvas.height);
+            
+            // Dibujar gráfica
+            dibujarEjes();
+            dibujarAproximacion(tiempoActual);
+            dibujarCurva();
+            dibujarLineaTiempo(tiempoActual);
+            
+            // Calcular volumen y dibujar estanque
+            if (modoActual === 'comparacion') {
+                const volumenMala = VOLUMEN_INICIAL - aguaPerdidaMala(tiempoActual);
+                const volumenMejorada = VOLUMEN_INICIAL - aguaPerdidaMejorada(tiempoActual);
+                const volumenExacta = VOLUMEN_INICIAL - aguaPerdidaExacta(tiempoActual);
+                
+                dibujarEstanque({
+                    mala: volumenMala,
+                    mejorada: volumenMejorada,
+                    exacta: volumenExacta
+                });
+            } else {
+                let aguaPerdida;
+                switch(modoActual) {
+                    case 'mala':
+                        aguaPerdida = aguaPerdidaMala(tiempoActual);
+                        break;
+                    case 'mejorada':
+                        aguaPerdida = aguaPerdidaMejorada(tiempoActual);
+                        break;
+                    case 'riemann':
+                        aguaPerdida = aguaPerdidaRiemann(tiempoActual);
+                        break;
+                    case 'exacta':
+                        aguaPerdida = aguaPerdidaExacta(tiempoActual);
+                        break;
+                }
+                const volumen = VOLUMEN_INICIAL - aguaPerdida;
+                dibujarEstanque(volumen);
+            }
+            
+            // Actualizar información
+            actualizarInformacion(tiempoActual);
+        }
+        
+        // Animación
+        function animar(timestamp) {
+            if (!animacionActiva) return;
+            
+            if (lastTime === 0) lastTime = timestamp;
+            const deltaTime = (timestamp - lastTime) / 1000; // en segundos
+            lastTime = timestamp;
+            
+            // Incrementar tiempo según velocidad
+            tiempoActual += deltaTime * velocidadAnimacion;
+            
+            if (tiempoActual >= TIEMPO_TOTAL) {
+                tiempoActual = TIEMPO_TOTAL;
+                animacionActiva = false;
+            }
+            
+            dibujar();
+            
+            if (animacionActiva) {
+                animationFrame = requestAnimationFrame(animar);
+            }
+        }
+        
+        // Controles
+        document.getElementById('btnIniciar').addEventListener('click', () => {
+            if (!animacionActiva) {
+                animacionActiva = true;
+                lastTime = 0;
+                requestAnimationFrame(animar);
+            }
+        });
+        
+        document.getElementById('btnPausar').addEventListener('click', () => {
+            animacionActiva = false;
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+        });
+        
+        document.getElementById('btnReiniciar').addEventListener('click', () => {
+            animacionActiva = false;
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+            tiempoActual = 0;
+            lastTime = 0;
+            dibujar();
+        });
+        
+        document.getElementById('velocidadSlider').addEventListener('input', (e) => {
+            const valor = parseInt(e.target.value);
+            // Mapeo: 1-10 -> 0.1x-1.0x (incrementos de 0.1), 11-100 -> 1.1x-10.0x
+            if (valor <= 10) {
+                velocidadAnimacion = valor / 10; // 0.1x a 1.0x
+            } else {
+                velocidadAnimacion = 1 + (valor - 10) / 10; // 1.0x a 10.0x
+            }
+            document.getElementById('velocidadValor').textContent = `${velocidadAnimacion.toFixed(1)}x`;
+        });
+        
+        // Cambiar modo
+        function cambiarModo(nuevoModo) {
+            modoActual = nuevoModo;
+            
+            // Actualizar botones
+            ['btnMala', 'btnMejorada', 'btnRiemann', 'btnExacta', 'btnComparacion'].forEach(id => {
+                document.getElementById(id).className = 'inactivo';
+            });
+            
+            const btnActivo = {
+                'mala': 'btnMala',
+                'mejorada': 'btnMejorada',
+                'riemann': 'btnRiemann',
+                'exacta': 'btnExacta',
+                'comparacion': 'btnComparacion'
+            }[nuevoModo];
+            
+            document.getElementById(btnActivo).className = 'activo';
+            
+            // Actualizar título del estanque
+            const titulos = {
+                'mala': 'Estanque (Mala)',
+                'mejorada': 'Estanque (Mejorada)',
+                'riemann': 'Estanque (Riemann)',
+                'exacta': 'Estanque (Exacta)',
+                'comparacion': 'Comparación'
+            };
+            document.getElementById('tituloEstanque').textContent = titulos[nuevoModo];
+            
+            dibujar();
+        }
+        
+        // Event listeners de modos
+        document.getElementById('btnMala').addEventListener('click', () => cambiarModo('mala'));
+        document.getElementById('btnMejorada').addEventListener('click', () => cambiarModo('mejorada'));
+        document.getElementById('btnRiemann').addEventListener('click', () => cambiarModo('riemann'));
+        document.getElementById('btnExacta').addEventListener('click', () => cambiarModo('exacta'));
+        document.getElementById('btnComparacion').addEventListener('click', () => cambiarModo('comparacion'));
+    </script>
+</body>
+</html>
